@@ -1,14 +1,12 @@
 ﻿using Microsoft.WindowsAPICodePack.Shell;
 using Microsoft.WindowsAPICodePack.Shell.PropertySystem;
-using System;
-using System.Windows.Forms;
-using unirest_net.http;
-using System.Net;
 using Newtonsoft.Json;
-using System.Net.Http;
-using System.Xml;
-using System.Threading;
+using System;
 using System.Text.RegularExpressions;
+using System.Threading;
+using System.Windows.Forms;
+using System.Xml;
+using unirest_net.http;
 
 namespace MusicApp
 {
@@ -137,7 +135,7 @@ namespace MusicApp
             }
         }
 
-        public static (TrackSearchJSON.Main, bool)  MusixmatchGet(string artist, string song)
+        public static (TrackSearchJSON.Track, bool)  MusixmatchGet(string artist, string song)
         {
             try
             {
@@ -145,11 +143,10 @@ namespace MusicApp
                 artist = artist.Replace(' ', '+');
                 song = song.Trim();
                 song = song.Replace(' ', '+');
-                string url = "https://musixmatchcom-musixmatch.p.mashape.com/wsr/1.1/track.search?q_track_artist=" + song + "&s_track_rating=desc&page=1&q_track=" + song + "&q_artist=" + artist + "&page_size=1";
-                //HttpResponse<string> response = Unirest.get("https://musixmatchcom-musixmatch.p.mashape.com/wsr/1.1/track.search?q_track_artist=Hotel+California&s_track_rating=desc&page=1&q_track=Hotel+California&q_artist=Eagles&page_size=1")
+                string APIKey = "";
+                string url = "https://api.musixmatch.com/ws/1.1/track.search?format=json&callback=callback&q_track=" + song + "&q_artist=" + artist + "&s_track_rating=desc&quorum_factor=1&page_size=1&apikey=" + APIKey;
+                
                 HttpResponse<string> response = Unirest.get(url)
-                   .header("X-Mashape-Key", "GGLEQ6xnQ5mshNEFjdypEff5Rv80p1NdFdMjsna08Vm5HN7ccb")
-                    .header("X-Mashape-Host", "musixmatchcom-musixmatch.p.mashape.com")
                     .asJson<string>();
 
                 if(response.Code != 200)
@@ -173,29 +170,12 @@ namespace MusicApp
                     }
                 }
                 response.Code.ToString();
-                //Unirest.shut
-                TrackSearchJSON.Main[] result = JsonConvert.DeserializeObject<TrackSearchJSON.Main[]>(response.Body.ToString());
+                TrackSearchJSON.Main result = JsonConvert.DeserializeObject<TrackSearchJSON.Main>(response.Body.ToString());
 
-                return (result[0], false);
+                return (result.Message.Body.TrackList[0].Track, false);
             }
-            //catch(HttpRequestException e)
-            //{                
-            //    MessageBox.Show("Error: " + e, "Http Request Failed!");
-            //    return (null, true); 
-            //}
-            //catch (WebException e)
-            //{
-            //    MessageBox.Show("Error: " + e, "Web Exception!");
-            //    return (null, true);
-            //}
-            //catch (AggregateException e)
-            //{
-            //    MessageBox.Show("Error: " + e, "Aggregate Exception!");
-            //    return (null, true);
-            //}
             catch (IndexOutOfRangeException)
             {
-                //MessageBox.Show("The search did not return any results for: " + artist + " - " + song, "No Results.");
                 return (null, false);
             }
             catch (Exception e)
@@ -327,12 +307,12 @@ namespace MusicApp
             var trackJSON = MusixmatchGet(aArtistTextBox.Text, titleTextBox.Text);
             if (trackJSON.Item1 != null)
             {
-                //var trackJSON = MusixmatchGet(aArtistTextBox.Text, titleTextBox.Text);                
                 albumTextBox.Text = trackJSON.Item1.AlbumName.ToString();
-                yearTextBox.Text = trackJSON.Item1.FirstReleaseDate.Year.ToString();
+                ///Enable this incase you want to chnage the year from the one drawn from the API.
+                //yearTextBox.Text = trackJSON.Item1.FirstReleaseDate.Year.ToString();
                 try
                 {
-                    genreBox.Text = trackJSON.Item1.PrimaryGenres.MusicGenre[0].MusicGenreName.ToString();
+                    genreBox.Text = trackJSON.Item1.PrimaryGenres.MusicGenreList[0].MusicGenre.MusicGenreName.ToString();
                 }
                 catch (IndexOutOfRangeException)
                 {
