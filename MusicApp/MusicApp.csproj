@@ -26,8 +26,8 @@
     <UpdateRequired>false</UpdateRequired>
     <MapFileExtensions>true</MapFileExtensions>
     <AutorunEnabled>true</AutorunEnabled>
-    <ApplicationRevision>12</ApplicationRevision>
-    <ApplicationVersion>1.2.2.%2a</ApplicationVersion>
+    <ApplicationRevision>17</ApplicationRevision>
+    <ApplicationVersion>1.3.3.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <PublishWizardCompleted>true</PublishWizardCompleted>
     <BootstrapperEnabled>true</BootstrapperEnabled>
@@ -158,6 +158,7 @@
     <Compile Include="SingleEdit.Designer.cs">
       <DependentUpon>SingleEdit.cs</DependentUpon>
     </Compile>
+    <Compile Include="Song.cs" />
     <Compile Include="Stats.cs">
       <SubType>Form</SubType>
     </Compile>

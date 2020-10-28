@@ -48,6 +48,11 @@ namespace MusicApp
                 MessageBox.Show("File not found exception!", "Error");
                 Close();
             }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.ToString(), "Error");
+                Close();
+            }
         }
 
         public void SetData(string location)

@@ -32,6 +32,7 @@
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.openToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.openExtendedToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.editToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.changeArtistsInfoToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -57,6 +58,7 @@
             this.statsButton = new System.Windows.Forms.Button();
             this.searchButton = new System.Windows.Forms.Button();
             this.searchTextBox = new System.Windows.Forms.TextBox();
+            this.refreshExtendedButton = new System.Windows.Forms.Button();
             this.menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             this.SuspendLayout();
@@ -78,6 +80,7 @@
             // 
             this.fileToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.openToolStripMenuItem,
+            this.openExtendedToolStripMenuItem,
             this.exitToolStripMenuItem});
             this.fileToolStripMenuItem.Name = "fileToolStripMenuItem";
             this.fileToolStripMenuItem.Size = new System.Drawing.Size(37, 20);
@@ -86,14 +89,21 @@
             // openToolStripMenuItem
             // 
             this.openToolStripMenuItem.Name = "openToolStripMenuItem";
-            this.openToolStripMenuItem.Size = new System.Drawing.Size(103, 22);
+            this.openToolStripMenuItem.Size = new System.Drawing.Size(154, 22);
             this.openToolStripMenuItem.Text = "Open";
             this.openToolStripMenuItem.Click += new System.EventHandler(this.OpenToolStripMenuItem_Click);
+            // 
+            // openExtendedToolStripMenuItem
+            // 
+            this.openExtendedToolStripMenuItem.Name = "openExtendedToolStripMenuItem";
+            this.openExtendedToolStripMenuItem.Size = new System.Drawing.Size(154, 22);
+            this.openExtendedToolStripMenuItem.Text = "Open extended";
+            this.openExtendedToolStripMenuItem.Click += new System.EventHandler(this.OpenExtendedToolStripMenuItem_Click);
             // 
             // exitToolStripMenuItem
             // 
             this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
-            this.exitToolStripMenuItem.Size = new System.Drawing.Size(103, 22);
+            this.exitToolStripMenuItem.Size = new System.Drawing.Size(154, 22);
             this.exitToolStripMenuItem.Text = "Exit";
             this.exitToolStripMenuItem.Click += new System.EventHandler(this.ExitToolStripMenuItem_Click);
             // 
@@ -340,11 +350,24 @@
             this.searchTextBox.TabIndex = 19;
             this.searchTextBox.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.SearchTextBox_KeyPress);
             // 
+            // refreshExtendedButton
+            // 
+            this.refreshExtendedButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.refreshExtendedButton.Enabled = false;
+            this.refreshExtendedButton.Location = new System.Drawing.Point(491, 401);
+            this.refreshExtendedButton.Name = "refreshExtendedButton";
+            this.refreshExtendedButton.Size = new System.Drawing.Size(75, 23);
+            this.refreshExtendedButton.TabIndex = 20;
+            this.refreshExtendedButton.Text = "Extend";
+            this.refreshExtendedButton.UseVisualStyleBackColor = true;
+            this.refreshExtendedButton.Click += new System.EventHandler(this.RefreshExtended_Click);
+            // 
             // Index
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(716, 436);
+            this.Controls.Add(this.refreshExtendedButton);
             this.Controls.Add(this.searchTextBox);
             this.Controls.Add(this.searchButton);
             this.Controls.Add(this.statsButton);
@@ -404,6 +427,8 @@
         private System.Windows.Forms.ToolStripMenuItem lyricsUpdateToolStripMenuItem;
         private System.Windows.Forms.Button searchButton;
         private System.Windows.Forms.TextBox searchTextBox;
+        private System.Windows.Forms.ToolStripMenuItem openExtendedToolStripMenuItem;
+        private System.Windows.Forms.Button refreshExtendedButton;
     }
 }
 

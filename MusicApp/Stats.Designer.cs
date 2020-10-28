@@ -106,8 +106,13 @@
             "Album Artists",
             "Contribution Artists",
             "Albums",
-            "File Names",
-            "Genres"});
+            "Genres",
+            "Years",
+            "Decades",
+            "Average Durations",
+            "Have Lyrics",
+            "ID Numbers",
+            "Locations"});
             this.comboBox1.Location = new System.Drawing.Point(105, 38);
             this.comboBox1.Name = "comboBox1";
             this.comboBox1.Size = new System.Drawing.Size(260, 21);
