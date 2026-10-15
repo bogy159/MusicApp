@@ -438,7 +438,21 @@ namespace MusicApp
                         var strFileName = file.DirectoryName + "\\" + file.Name;
                         Shell32.Folder objFolder = shell.NameSpace(System.IO.Path.GetDirectoryName(strFileName));
                         Shell32.FolderItem folderItem = objFolder.ParseName(System.IO.Path.GetFileName(strFileName));
-                        var contrArtist = objFolder.GetDetailsOf(folderItem, 13);
+                        // Prefer ShellObject properties when available; fall back to folder details index 13
+                        string contrArtist = string.Empty;
+                        try
+                        {
+                            var shellObj = ShellObject.FromParsingName(strFileName);
+                            contrArtist = GetValue(shellObj.Properties.GetProperty(SystemProperties.System.Music.Artist));
+                        }
+                        catch
+                        {
+                            contrArtist = string.Empty;
+                        }
+                        if (string.IsNullOrEmpty(contrArtist) && objFolder != null)
+                        {
+                            contrArtist = objFolder.GetDetailsOf(folderItem, 13);
+                        }
 
                         if (contrArtist == "" || contrArtist.Contains("ntitled") || contrArtist.Contains("various") || contrArtist.Contains("Various") || contrArtist.Contains("nknown") || contrArtist.Contains("http") || contrArtist.Contains("www.") || contrArtist.Contains(".com"))
                         {
@@ -521,7 +535,21 @@ namespace MusicApp
                         var strFileName = file.DirectoryName + "\\" + file.Name;
                         Shell32.Folder objFolder = shell.NameSpace(System.IO.Path.GetDirectoryName(strFileName));
                         Shell32.FolderItem folderItem = objFolder.ParseName(System.IO.Path.GetFileName(strFileName));
-                        var title = objFolder.GetDetailsOf(folderItem, 21);
+                        // Prefer ShellObject title property; fall back to folder details index 21
+                        string title = string.Empty;
+                        try
+                        {
+                            var shellObj = ShellObject.FromParsingName(strFileName);
+                            title = GetValue(shellObj.Properties.GetProperty(SystemProperties.System.Title));
+                        }
+                        catch
+                        {
+                            title = string.Empty;
+                        }
+                        if (string.IsNullOrEmpty(title) && objFolder != null)
+                        {
+                            title = objFolder.GetDetailsOf(folderItem, 21);
+                        }
 
                         if (title == "" || title.Contains("ntitled") || title.Contains("nknown") || title.Contains("nknown") || title.Contains("http") || title.Contains("www.") || title.Contains(".com") || title.Contains("Track"))
                         {
@@ -779,11 +807,39 @@ namespace MusicApp
                     {
                         var year = GetValue(song.Properties.GetProperty(SystemProperties.System.Media.Year));
                         string album = GetValue(song.Properties.GetProperty(SystemProperties.System.Music.AlbumTitle));
+                            // Prefer ShellObject properties; fall back to COM Shell32 for extended details if needed
+                            string genre = string.Empty;
+                            try
+                            {
+                                var shellObj = ShellObject.FromParsingName(strFileName);
+                                // COM wrapper may not be available in all project types; use it only if present
+                                try
+                                {
+                                    Shell32.Shell shell = new Shell32.Shell();
+                                    Shell32.Folder objFolder = shell.NameSpace(System.IO.Path.GetDirectoryName(strFileName));
+                                    var folderItem = objFolder?.ParseName(System.IO.Path.GetFileName(strFileName));
+                                    genre = objFolder?.GetDetailsOf(folderItem, 16) ?? string.Empty;
+                                }
+                                catch
+                                {
+                                    // If COM access fails, leave genre empty (we'll try to get genre from ShellObject below)
+                                    genre = string.Empty;
+                                }
 
-                        Shell32.Shell shell = new Shell32.Shell();
-                        Shell32.Folder objFolder = shell.NameSpace(System.IO.Path.GetDirectoryName(strFileName));
-                        Shell32.FolderItem folderItem = objFolder.ParseName(System.IO.Path.GetFileName(strFileName));
-                        var genre = objFolder.GetDetailsOf(folderItem, 16);
+                                // If genre still empty, try to read from ShellObject properties
+                                if (string.IsNullOrEmpty(genre))
+                                {
+                                    genre = GetValue(shellObj.Properties.GetProperty(SystemProperties.System.Music.Genre));
+                                }
+                            }
+                            catch
+                            {
+                                // Last resort: use COM wrapper directly
+                                Shell32.Shell shell = new Shell32.Shell();
+                                Shell32.Folder objFolder = shell.NameSpace(System.IO.Path.GetDirectoryName(strFileName));
+                                Shell32.FolderItem folderItem = objFolder.ParseName(System.IO.Path.GetFileName(strFileName));
+                                genre = objFolder.GetDetailsOf(folderItem, 16);
+                            }
 
                         if (year.ToString() == "" || Convert.ToInt16(year) == 0 || album == "" || genre.ToString() == "")
                         {
@@ -1005,19 +1061,68 @@ namespace MusicApp
                 };
 
                 ShellObject song = ShellObject.FromParsingName(location);
-                Shell32.Shell shell = new Shell32.Shell();
-                Shell32.Folder objFolder = shell.NameSpace(System.IO.Path.GetDirectoryName(location));
-                Shell32.FolderItem folderItem = objFolder.ParseName(System.IO.Path.GetFileName(location));
-                item.FileName = objFolder.GetDetailsOf(folderItem, 0);
+                // Try to use ShellObject properties where available; fall back to COM Shell32 details for older SDKs or missing properties
+                Shell32.Shell shell = null;
+                Shell32.Folder objFolder = null;
+                Shell32.FolderItem folderItem = null;
+                try
+                {
+                    shell = new Shell32.Shell();
+                    objFolder = shell.NameSpace(System.IO.Path.GetDirectoryName(location));
+                    folderItem = objFolder?.ParseName(System.IO.Path.GetFileName(location));
+                }
+                catch
+                {
+                    // Ignore: COM wrapper might not be available in some project types; we'll rely on ShellObject values where possible
+                }
+
+                var fileName = GetValue(song.Properties.GetProperty(SystemProperties.System.FileName));
+                item.FileName = !string.IsNullOrEmpty(fileName) ? fileName : (objFolder != null && folderItem != null ? objFolder.GetDetailsOf(folderItem, 0) : string.Empty);
+
                 item.AlbumArtist = GetValue(song.Properties.GetProperty(SystemProperties.System.Music.AlbumArtist));
-                item.ContributingArtist = objFolder.GetDetailsOf(folderItem, 13);
-                item.SongTitle = objFolder.GetDetailsOf(folderItem, 21);
-                item.AlbumTitle = objFolder.GetDetailsOf(folderItem, 14);
-                item.Year = objFolder.GetDetailsOf(folderItem, 15);
-                item.Genre = objFolder.GetDetailsOf(folderItem, 16);
-                item.Length = objFolder.GetDetailsOf(folderItem, 27);
-                item.Size = objFolder.GetDetailsOf(folderItem, 1);
-                item.BitRate = objFolder.GetDetailsOf(folderItem, 28);
+
+                // Try to read ContributingArtist via its property key (FMTID_MUSIC, PID 13).
+                // Fallback to ShellObject Artist or folder details index 13 if not available.
+                string contributing = string.Empty;
+                try
+                {
+                    var pkeyContrib = new PropertyKey(new Guid("56A3372E-CE9C-11D2-9F0E-006097C686F6"), 13);
+                    contributing = GetValue(song.Properties.GetProperty(pkeyContrib));
+                }
+                catch
+                {
+                    try
+                    {
+                        contributing = GetValue(song.Properties.GetProperty(SystemProperties.System.Music.Artist));
+                    }
+                    catch
+                    {
+                        // ignore - will fall back to shell folder details
+                    }
+                }
+                if (string.IsNullOrEmpty(contributing) && objFolder != null && folderItem != null)
+                {
+                    contributing = objFolder.GetDetailsOf(folderItem, 13);
+                }
+                item.ContributingArtist = contributing ?? string.Empty;
+
+                string title = GetValue(song.Properties.GetProperty(SystemProperties.System.Title));
+                item.SongTitle = !string.IsNullOrEmpty(title) ? title : (objFolder != null && folderItem != null ? objFolder.GetDetailsOf(folderItem, 21) : string.Empty);
+
+                var album = GetValue(song.Properties.GetProperty(SystemProperties.System.Music.AlbumTitle));
+                item.AlbumTitle = !string.IsNullOrEmpty(album) ? album : (objFolder != null && folderItem != null ? objFolder.GetDetailsOf(folderItem, 14) : string.Empty);
+
+                var year = GetValue(song.Properties.GetProperty(SystemProperties.System.Media.Year));
+                item.Year = !string.IsNullOrEmpty(year) ? year : (objFolder != null && folderItem != null ? objFolder.GetDetailsOf(folderItem, 15) : string.Empty);
+
+                var genre = GetValue(song.Properties.GetProperty(SystemProperties.System.Music.Genre));
+                item.Genre = !string.IsNullOrEmpty(genre) ? genre : (objFolder != null && folderItem != null ? objFolder.GetDetailsOf(folderItem, 16) : string.Empty);
+
+                // Length, Size and BitRate formatting is more reliable from the FolderItem details; fall back to ShellObject raw values if needed
+                item.Length = (objFolder != null && folderItem != null) ? objFolder.GetDetailsOf(folderItem, 27) : GetValue(song.Properties.GetProperty(SystemProperties.System.Media.Duration));
+                item.Size = (objFolder != null && folderItem != null) ? objFolder.GetDetailsOf(folderItem, 1) : GetValue(song.Properties.GetProperty(SystemProperties.System.Size));
+                item.BitRate = (objFolder != null && folderItem != null) ? objFolder.GetDetailsOf(folderItem, 28) : GetValue(song.Properties.GetProperty(SystemProperties.System.Audio.EncodingBitrate));
+
                 item.Lyrics = GetValue(song.Properties.GetProperty(SystemProperties.System.Music.Lyrics));
                 return item;
             }
@@ -1080,7 +1185,7 @@ namespace MusicApp
                         }
                     }
 
-                    else if (currentSong.AlbumArtist != currentSong.ContributingArtist)
+                    else if (!string.Equals(currentSong.AlbumArtist, currentSong.ContributingArtist, StringComparison.OrdinalIgnoreCase))
                     {
                         row["Needed Changes in Artists"] = "Different Artists";
                     }

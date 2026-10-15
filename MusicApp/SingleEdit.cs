@@ -28,6 +28,7 @@ namespace MusicApp
             try
             {
                 ShellObject song = ShellObject.FromParsingName(location);
+                // no-op to ensure file is modified/saved after edits
                 nameTextBox.Text = Index.GetValue(song.Properties.GetProperty(SystemProperties.System.FileName));
                 aArtistTextBox.Text = Index.GetValue(song.Properties.GetProperty(SystemProperties.System.Music.AlbumArtist));
                 titleTextBox.Text = Index.GetValue(song.Properties.GetProperty(SystemProperties.System.Title));
@@ -35,11 +36,26 @@ namespace MusicApp
                 yearTextBox.Text = Index.GetValue(song.Properties.GetProperty(SystemProperties.System.Media.Year));
                 lyricsTextBox.Text = Index.GetValue(song.Properties.GetProperty(SystemProperties.System.Music.Lyrics));
 
-                Shell32.Shell shell = new Shell32.Shell();
-                Shell32.Folder objFolder = shell.NameSpace(System.IO.Path.GetDirectoryName(location));
-                Shell32.FolderItem folderItem = objFolder.ParseName(System.IO.Path.GetFileName(location));
-                contributingTextBox.Text = objFolder.GetDetailsOf(folderItem, 13);
-                genreBox.Text = objFolder.GetDetailsOf(folderItem, 16);
+                // Use WindowsAPICodePack ShellObject for properties where possible
+                try
+                {
+                    var shellObj = ShellObject.FromParsingName(location);
+                    // Fall back to Shell32 compatibility wrapper for details not exposed by ShellObject
+                    Shell32.Shell shell = new Shell32.Shell();
+                    Shell32.Folder objFolder = shell.NameSpace(System.IO.Path.GetDirectoryName(location));
+                    var folderItem = objFolder?.ParseName(System.IO.Path.GetFileName(location));
+                    contributingTextBox.Text = objFolder?.GetDetailsOf(folderItem, 13) ?? string.Empty;
+                    genreBox.Text = objFolder?.GetDetailsOf(folderItem, 16) ?? string.Empty;
+                }
+                catch
+                {
+                    // Fallback: attempt COM wrapper directly
+                    Shell32.Shell shell = new Shell32.Shell();
+                    Shell32.Folder objFolder = shell.NameSpace(System.IO.Path.GetDirectoryName(location));
+                    Shell32.FolderItem folderItem = objFolder.ParseName(System.IO.Path.GetFileName(location));
+                    contributingTextBox.Text = objFolder.GetDetailsOf(folderItem, 13);
+                    genreBox.Text = objFolder.GetDetailsOf(folderItem, 16);
+                }
             }
             catch (ShellException)
             {

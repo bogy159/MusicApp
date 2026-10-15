@@ -29,286 +29,300 @@
         private void InitializeComponent()
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(SingleEdit));
-            this.OK = new System.Windows.Forms.Button();
-            this.CancelButton2 = new System.Windows.Forms.Button();
-            this.locationBox = new System.Windows.Forms.TextBox();
-            this.label1 = new System.Windows.Forms.Label();
-            this.label2 = new System.Windows.Forms.Label();
-            this.label3 = new System.Windows.Forms.Label();
-            this.label4 = new System.Windows.Forms.Label();
-            this.label5 = new System.Windows.Forms.Label();
-            this.label6 = new System.Windows.Forms.Label();
-            this.nameTextBox = new System.Windows.Forms.TextBox();
-            this.aArtistTextBox = new System.Windows.Forms.TextBox();
-            this.titleTextBox = new System.Windows.Forms.TextBox();
-            this.yearTextBox = new System.Windows.Forms.TextBox();
-            this.albumTextBox = new System.Windows.Forms.TextBox();
-            this.genreBox = new System.Windows.Forms.TextBox();
-            this.genreLabel = new System.Windows.Forms.Label();
-            this.contributingTextBox = new System.Windows.Forms.TextBox();
-            this.label7 = new System.Windows.Forms.Label();
-            this.lyricsTextBox = new System.Windows.Forms.RichTextBox();
-            this.APIbutton = new System.Windows.Forms.Button();
-            this.LyricsButton = new System.Windows.Forms.Button();
-            this.label8 = new System.Windows.Forms.Label();
-            this.quickGetButton = new System.Windows.Forms.Button();
-            this.SuspendLayout();
+            OK = new Button();
+            CancelButton2 = new Button();
+            locationBox = new TextBox();
+            label1 = new Label();
+            label2 = new Label();
+            label3 = new Label();
+            label4 = new Label();
+            label5 = new Label();
+            label6 = new Label();
+            nameTextBox = new TextBox();
+            aArtistTextBox = new TextBox();
+            titleTextBox = new TextBox();
+            yearTextBox = new TextBox();
+            albumTextBox = new TextBox();
+            genreBox = new TextBox();
+            genreLabel = new Label();
+            contributingTextBox = new TextBox();
+            label7 = new Label();
+            lyricsTextBox = new RichTextBox();
+            APIbutton = new Button();
+            LyricsButton = new Button();
+            label8 = new Label();
+            quickGetButton = new Button();
+            SuspendLayout();
             // 
             // OK
             // 
-            this.OK.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.OK.Location = new System.Drawing.Point(256, 525);
-            this.OK.Name = "OK";
-            this.OK.Size = new System.Drawing.Size(75, 23);
-            this.OK.TabIndex = 0;
-            this.OK.Text = "OK";
-            this.OK.UseVisualStyleBackColor = true;
-            this.OK.Click += new System.EventHandler(this.OK_Click);
+            OK.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+            OK.Location = new Point(341, 808);
+            OK.Margin = new Padding(4, 5, 4, 5);
+            OK.Name = "OK";
+            OK.Size = new Size(100, 35);
+            OK.TabIndex = 0;
+            OK.Text = "OK";
+            OK.UseVisualStyleBackColor = true;
+            OK.Click += OK_Click;
             // 
             // CancelButton2
             // 
-            this.CancelButton2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.CancelButton2.Location = new System.Drawing.Point(337, 525);
-            this.CancelButton2.Name = "CancelButton2";
-            this.CancelButton2.Size = new System.Drawing.Size(75, 23);
-            this.CancelButton2.TabIndex = 1;
-            this.CancelButton2.Text = "Cancel";
-            this.CancelButton2.UseVisualStyleBackColor = true;
-            this.CancelButton2.Click += new System.EventHandler(this.CancelButton_Click);
+            CancelButton2.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+            CancelButton2.Location = new Point(449, 808);
+            CancelButton2.Margin = new Padding(4, 5, 4, 5);
+            CancelButton2.Name = "CancelButton2";
+            CancelButton2.Size = new Size(100, 35);
+            CancelButton2.TabIndex = 1;
+            CancelButton2.Text = "Cancel";
+            CancelButton2.UseVisualStyleBackColor = true;
+            CancelButton2.Click += CancelButton_Click;
             // 
             // locationBox
             // 
-            this.locationBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.locationBox.Location = new System.Drawing.Point(78, 12);
-            this.locationBox.Name = "locationBox";
-            this.locationBox.ReadOnly = true;
-            this.locationBox.Size = new System.Drawing.Size(334, 20);
-            this.locationBox.TabIndex = 2;
+            locationBox.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            locationBox.Location = new Point(107, 18);
+            locationBox.Margin = new Padding(4, 5, 4, 5);
+            locationBox.Name = "locationBox";
+            locationBox.ReadOnly = true;
+            locationBox.Size = new Size(441, 27);
+            locationBox.TabIndex = 2;
             // 
             // label1
             // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(12, 15);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(60, 13);
-            this.label1.TabIndex = 3;
-            this.label1.Text = "Path to file:";
+            label1.AutoSize = true;
+            label1.Location = new Point(16, 23);
+            label1.Margin = new Padding(4, 0, 4, 0);
+            label1.Name = "label1";
+            label1.Size = new Size(83, 20);
+            label1.TabIndex = 3;
+            label1.Text = "Path to file:";
             // 
             // label2
             // 
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(12, 43);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(57, 13);
-            this.label2.TabIndex = 4;
-            this.label2.Text = "File Name:";
+            label2.AutoSize = true;
+            label2.Location = new Point(16, 66);
+            label2.Margin = new Padding(4, 0, 4, 0);
+            label2.Name = "label2";
+            label2.Size = new Size(79, 20);
+            label2.TabIndex = 4;
+            label2.Text = "File Name:";
             // 
             // label3
             // 
-            this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(12, 72);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(65, 13);
-            this.label3.TabIndex = 5;
-            this.label3.Text = "Album Artist:";
+            label3.AutoSize = true;
+            label3.Location = new Point(16, 111);
+            label3.Margin = new Padding(4, 0, 4, 0);
+            label3.Name = "label3";
+            label3.Size = new Size(95, 20);
+            label3.TabIndex = 5;
+            label3.Text = "Album Artist:";
             // 
             // label4
             // 
-            this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(12, 124);
-            this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(58, 13);
-            this.label4.TabIndex = 6;
-            this.label4.Text = "Song Title:";
+            label4.AutoSize = true;
+            label4.Location = new Point(16, 191);
+            label4.Margin = new Padding(4, 0, 4, 0);
+            label4.Name = "label4";
+            label4.Size = new Size(79, 20);
+            label4.TabIndex = 6;
+            label4.Text = "Song Title:";
             // 
             // label5
             // 
-            this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(12, 176);
-            this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(32, 13);
-            this.label5.TabIndex = 7;
-            this.label5.Text = "Year:";
+            label5.AutoSize = true;
+            label5.Location = new Point(16, 271);
+            label5.Margin = new Padding(4, 0, 4, 0);
+            label5.Name = "label5";
+            label5.Size = new Size(40, 20);
+            label5.TabIndex = 7;
+            label5.Text = "Year:";
             // 
             // label6
             // 
-            this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(12, 150);
-            this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(39, 13);
-            this.label6.TabIndex = 13;
-            this.label6.Text = "Album:";
+            label6.AutoSize = true;
+            label6.Location = new Point(16, 231);
+            label6.Margin = new Padding(4, 0, 4, 0);
+            label6.Name = "label6";
+            label6.Size = new Size(56, 20);
+            label6.TabIndex = 13;
+            label6.Text = "Album:";
             // 
             // nameTextBox
             // 
-            this.nameTextBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.nameTextBox.Location = new System.Drawing.Point(78, 43);
-            this.nameTextBox.Name = "nameTextBox";
-            this.nameTextBox.Size = new System.Drawing.Size(334, 20);
-            this.nameTextBox.TabIndex = 14;
+            nameTextBox.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            nameTextBox.Location = new Point(107, 66);
+            nameTextBox.Margin = new Padding(4, 5, 4, 5);
+            nameTextBox.Name = "nameTextBox";
+            nameTextBox.Size = new Size(441, 27);
+            nameTextBox.TabIndex = 14;
             // 
             // aArtistTextBox
             // 
-            this.aArtistTextBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.aArtistTextBox.Location = new System.Drawing.Point(78, 69);
-            this.aArtistTextBox.Name = "aArtistTextBox";
-            this.aArtistTextBox.Size = new System.Drawing.Size(334, 20);
-            this.aArtistTextBox.TabIndex = 15;
+            aArtistTextBox.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            aArtistTextBox.Location = new Point(107, 106);
+            aArtistTextBox.Margin = new Padding(4, 5, 4, 5);
+            aArtistTextBox.Name = "aArtistTextBox";
+            aArtistTextBox.Size = new Size(441, 27);
+            aArtistTextBox.TabIndex = 15;
             // 
             // titleTextBox
             // 
-            this.titleTextBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.titleTextBox.Location = new System.Drawing.Point(78, 121);
-            this.titleTextBox.Name = "titleTextBox";
-            this.titleTextBox.Size = new System.Drawing.Size(334, 20);
-            this.titleTextBox.TabIndex = 16;
+            titleTextBox.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            titleTextBox.Location = new Point(107, 186);
+            titleTextBox.Margin = new Padding(4, 5, 4, 5);
+            titleTextBox.Name = "titleTextBox";
+            titleTextBox.Size = new Size(441, 27);
+            titleTextBox.TabIndex = 16;
             // 
             // yearTextBox
             // 
-            this.yearTextBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.yearTextBox.Location = new System.Drawing.Point(78, 173);
-            this.yearTextBox.MaxLength = 4;
-            this.yearTextBox.Name = "yearTextBox";
-            this.yearTextBox.Size = new System.Drawing.Size(334, 20);
-            this.yearTextBox.TabIndex = 18;
-            this.yearTextBox.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.YearTextBox_KeyPress);
+            yearTextBox.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            yearTextBox.Location = new Point(107, 266);
+            yearTextBox.Margin = new Padding(4, 5, 4, 5);
+            yearTextBox.MaxLength = 4;
+            yearTextBox.Name = "yearTextBox";
+            yearTextBox.Size = new Size(441, 27);
+            yearTextBox.TabIndex = 18;
+            yearTextBox.KeyPress += YearTextBox_KeyPress;
             // 
             // albumTextBox
             // 
-            this.albumTextBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.albumTextBox.Location = new System.Drawing.Point(78, 147);
-            this.albumTextBox.Name = "albumTextBox";
-            this.albumTextBox.Size = new System.Drawing.Size(334, 20);
-            this.albumTextBox.TabIndex = 19;
+            albumTextBox.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            albumTextBox.Location = new Point(107, 226);
+            albumTextBox.Margin = new Padding(4, 5, 4, 5);
+            albumTextBox.Name = "albumTextBox";
+            albumTextBox.Size = new Size(441, 27);
+            albumTextBox.TabIndex = 19;
             // 
             // genreBox
             // 
-            this.genreBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.genreBox.Location = new System.Drawing.Point(78, 199);
-            this.genreBox.Name = "genreBox";
-            this.genreBox.Size = new System.Drawing.Size(334, 20);
-            this.genreBox.TabIndex = 20;
+            genreBox.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            genreBox.Location = new Point(107, 306);
+            genreBox.Margin = new Padding(4, 5, 4, 5);
+            genreBox.Name = "genreBox";
+            genreBox.Size = new Size(441, 27);
+            genreBox.TabIndex = 20;
             // 
             // genreLabel
             // 
-            this.genreLabel.AutoSize = true;
-            this.genreLabel.Location = new System.Drawing.Point(12, 202);
-            this.genreLabel.Name = "genreLabel";
-            this.genreLabel.Size = new System.Drawing.Size(39, 13);
-            this.genreLabel.TabIndex = 21;
-            this.genreLabel.Text = "Genre:";
+            genreLabel.AutoSize = true;
+            genreLabel.Location = new Point(16, 311);
+            genreLabel.Margin = new Padding(4, 0, 4, 0);
+            genreLabel.Name = "genreLabel";
+            genreLabel.Size = new Size(51, 20);
+            genreLabel.TabIndex = 21;
+            genreLabel.Text = "Genre:";
             // 
             // contributingTextBox
             // 
-            this.contributingTextBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.contributingTextBox.Location = new System.Drawing.Point(78, 95);
-            this.contributingTextBox.Name = "contributingTextBox";
-            this.contributingTextBox.Size = new System.Drawing.Size(334, 20);
-            this.contributingTextBox.TabIndex = 22;
+            contributingTextBox.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            contributingTextBox.Location = new Point(107, 146);
+            contributingTextBox.Margin = new Padding(4, 5, 4, 5);
+            contributingTextBox.Name = "contributingTextBox";
+            contributingTextBox.Size = new Size(441, 27);
+            contributingTextBox.TabIndex = 22;
             // 
             // label7
             // 
-            this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(12, 98);
-            this.label7.Name = "label7";
-            this.label7.Size = new System.Drawing.Size(66, 13);
-            this.label7.TabIndex = 23;
-            this.label7.Text = "Contributing:";
+            label7.AutoSize = true;
+            label7.Location = new Point(16, 151);
+            label7.Margin = new Padding(4, 0, 4, 0);
+            label7.Name = "label7";
+            label7.Size = new Size(95, 20);
+            label7.TabIndex = 23;
+            label7.Text = "Contributing:";
             // 
             // lyricsTextBox
             // 
-            this.lyricsTextBox.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.lyricsTextBox.Location = new System.Drawing.Point(78, 225);
-            this.lyricsTextBox.Name = "lyricsTextBox";
-            this.lyricsTextBox.Size = new System.Drawing.Size(334, 294);
-            this.lyricsTextBox.TabIndex = 24;
-            this.lyricsTextBox.Text = "";
+            lyricsTextBox.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            lyricsTextBox.Location = new Point(107, 346);
+            lyricsTextBox.Margin = new Padding(4, 5, 4, 5);
+            lyricsTextBox.Name = "lyricsTextBox";
+            lyricsTextBox.Size = new Size(441, 450);
+            lyricsTextBox.TabIndex = 24;
+            lyricsTextBox.Text = "";
             // 
             // APIbutton
             // 
-            this.APIbutton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.APIbutton.Location = new System.Drawing.Point(93, 525);
-            this.APIbutton.Name = "APIbutton";
-            this.APIbutton.Size = new System.Drawing.Size(75, 23);
-            this.APIbutton.TabIndex = 25;
-            this.APIbutton.Text = "MusixMatch";
-            this.APIbutton.UseVisualStyleBackColor = true;
-            this.APIbutton.Click += new System.EventHandler(this.APIbutton_Click);
+            APIbutton.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            APIbutton.Location = new Point(124, 808);
+            APIbutton.Margin = new Padding(4, 5, 4, 5);
+            APIbutton.Name = "APIbutton";
+            APIbutton.Size = new Size(100, 35);
+            APIbutton.TabIndex = 25;
+            APIbutton.Text = "MusixMatch";
+            APIbutton.UseVisualStyleBackColor = true;
+            APIbutton.Click += APIbutton_Click;
             // 
             // LyricsButton
             // 
-            this.LyricsButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.LyricsButton.Location = new System.Drawing.Point(174, 525);
-            this.LyricsButton.Name = "LyricsButton";
-            this.LyricsButton.Size = new System.Drawing.Size(75, 23);
-            this.LyricsButton.TabIndex = 27;
-            this.LyricsButton.Text = "Get Lyrics";
-            this.LyricsButton.UseVisualStyleBackColor = true;
-            this.LyricsButton.Click += new System.EventHandler(this.LyricsButton_Click);
+            LyricsButton.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            LyricsButton.Location = new Point(232, 808);
+            LyricsButton.Margin = new Padding(4, 5, 4, 5);
+            LyricsButton.Name = "LyricsButton";
+            LyricsButton.Size = new Size(100, 35);
+            LyricsButton.TabIndex = 27;
+            LyricsButton.Text = "Get Lyrics";
+            LyricsButton.UseVisualStyleBackColor = true;
+            LyricsButton.Click += LyricsButton_Click;
             // 
             // label8
             // 
-            this.label8.AutoSize = true;
-            this.label8.Location = new System.Drawing.Point(12, 228);
-            this.label8.Name = "label8";
-            this.label8.Size = new System.Drawing.Size(37, 13);
-            this.label8.TabIndex = 28;
-            this.label8.Text = "Lyrics:";
+            label8.AutoSize = true;
+            label8.Location = new Point(16, 351);
+            label8.Margin = new Padding(4, 0, 4, 0);
+            label8.Name = "label8";
+            label8.Size = new Size(47, 20);
+            label8.TabIndex = 28;
+            label8.Text = "Lyrics:";
             // 
             // quickGetButton
             // 
-            this.quickGetButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.quickGetButton.Location = new System.Drawing.Point(12, 525);
-            this.quickGetButton.Name = "quickGetButton";
-            this.quickGetButton.Size = new System.Drawing.Size(75, 23);
-            this.quickGetButton.TabIndex = 29;
-            this.quickGetButton.Text = "Get Data";
-            this.quickGetButton.UseVisualStyleBackColor = true;
-            this.quickGetButton.Click += new System.EventHandler(this.QuickGetButton_Click);
+            quickGetButton.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            quickGetButton.Location = new Point(16, 808);
+            quickGetButton.Margin = new Padding(4, 5, 4, 5);
+            quickGetButton.Name = "quickGetButton";
+            quickGetButton.Size = new Size(100, 35);
+            quickGetButton.TabIndex = 29;
+            quickGetButton.Text = "Get Data";
+            quickGetButton.UseVisualStyleBackColor = true;
+            quickGetButton.Click += QuickGetButton_Click;
             // 
             // SingleEdit
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(424, 560);
-            this.Controls.Add(this.quickGetButton);
-            this.Controls.Add(this.label8);
-            this.Controls.Add(this.LyricsButton);
-            this.Controls.Add(this.APIbutton);
-            this.Controls.Add(this.lyricsTextBox);
-            this.Controls.Add(this.label7);
-            this.Controls.Add(this.contributingTextBox);
-            this.Controls.Add(this.genreLabel);
-            this.Controls.Add(this.genreBox);
-            this.Controls.Add(this.albumTextBox);
-            this.Controls.Add(this.yearTextBox);
-            this.Controls.Add(this.titleTextBox);
-            this.Controls.Add(this.aArtistTextBox);
-            this.Controls.Add(this.nameTextBox);
-            this.Controls.Add(this.label6);
-            this.Controls.Add(this.label5);
-            this.Controls.Add(this.label4);
-            this.Controls.Add(this.label3);
-            this.Controls.Add(this.label2);
-            this.Controls.Add(this.label1);
-            this.Controls.Add(this.locationBox);
-            this.Controls.Add(this.CancelButton2);
-            this.Controls.Add(this.OK);
-            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
-            this.Name = "SingleEdit";
-            this.Text = "SingleEdit";
-            this.ResumeLayout(false);
-            this.PerformLayout();
+            AutoScaleDimensions = new SizeF(8F, 20F);
+            AutoScaleMode = AutoScaleMode.Font;
+            ClientSize = new Size(565, 862);
+            Controls.Add(contributingTextBox);
+            Controls.Add(quickGetButton);
+            Controls.Add(label8);
+            Controls.Add(LyricsButton);
+            Controls.Add(APIbutton);
+            Controls.Add(lyricsTextBox);
+            Controls.Add(label7);
+            Controls.Add(genreLabel);
+            Controls.Add(genreBox);
+            Controls.Add(albumTextBox);
+            Controls.Add(yearTextBox);
+            Controls.Add(titleTextBox);
+            Controls.Add(aArtistTextBox);
+            Controls.Add(nameTextBox);
+            Controls.Add(label6);
+            Controls.Add(label5);
+            Controls.Add(label4);
+            Controls.Add(label3);
+            Controls.Add(label2);
+            Controls.Add(label1);
+            Controls.Add(locationBox);
+            Controls.Add(CancelButton2);
+            Controls.Add(OK);
+            Icon = (Icon)resources.GetObject("$this.Icon");
+            Margin = new Padding(4, 5, 4, 5);
+            Name = "SingleEdit";
+            Text = "SingleEdit";
+            ResumeLayout(false);
+            PerformLayout();
 
         }
 
