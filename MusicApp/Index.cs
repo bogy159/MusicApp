@@ -798,7 +798,7 @@ namespace MusicApp
                                 {
                                     try
                                     {
-                                        string yearMM = trackJSON.Item1.FirstReleaseDate.Year.ToString();
+                                        string yearMM = "";//trackJSON.Item1.FirstReleaseDate.Year.ToString();
                                         if ((year.ToString() == "" || Convert.ToInt16(year) == 0) && yearMM != "" && Convert.ToInt16(yearMM) <= Convert.ToInt16(DateTime.Now.Year) && Convert.ToInt16(yearMM) > 1900)
                                         {
                                             propertyWriter.WriteProperty(SystemProperties.System.Media.Year, new int[] { Convert.ToInt16(yearMM) });
@@ -824,7 +824,7 @@ namespace MusicApp
                                     {
                                         try
                                         {
-                                            string genreMM = trackJSON.Item1.PrimaryGenres.MusicGenre[0].MusicGenreName.ToString();
+                                            string genreMM = trackJSON.Item1.PrimaryGenres.MusicGenreList[0].MusicGenre.MusicGenreName.ToString();
                                             if (genreMM.ToString() != "")
                                             {
                                                 propertyWriter.WriteProperty(SystemProperties.System.Music.Genre, new string[] { genreMM });
