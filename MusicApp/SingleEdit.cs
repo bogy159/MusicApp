@@ -134,66 +134,7 @@ namespace MusicApp
             {
                 MessageBox.Show("Error: " + ex.Message, "Renaming error!");                
             }
-        }
-
-        public static (TrackSearchJSON.Track, bool)  MusixmatchGet(string artist, string song)
-        {
-            try
-            {
-                artist = artist.Trim();
-                artist = artist.Replace(' ', '+');
-                song = song.Trim();
-                song = song.Replace(' ', '+');
-                string APIKey = "";
-                string url = "https://api.musixmatch.com/ws/1.1/track.search?format=json&callback=callback&q_track=" + song + "&q_artist=" + artist + "&s_track_rating=desc&quorum_factor=1&page_size=1&apikey=" + APIKey;
-                
-                HttpResponse<string> response = Unirest.get(url).asJson<string>();
-
-                if(response.Code != 200)
-                {
-                    artist = artist.Replace('+', ' ');
-                    song = song.Replace('+', ' ');
-                    DialogResult dialogResult = MessageBox.Show("Response code: " + response.Code + Environment.NewLine + "When searching: " + artist + " - " + song, "Server error!", MessageBoxButtons.AbortRetryIgnore);
-                    if (dialogResult == DialogResult.Abort)
-                        return (null, true);
-                    else if (dialogResult == DialogResult.Retry)
-                    {
-                        Thread.Sleep(2000);
-                        return MusixmatchGet(artist, song);
-                    }
-                    else if (dialogResult == DialogResult.Ignore)
-                        return (null, false);
-                }
-                response.Code.ToString();
-                TrackSearchJSON.Main result = JsonConvert.DeserializeObject<TrackSearchJSON.Main>(response.Body.ToString());
-
-                return (result.Message.Body.TrackList[0].Track, false);
-            }
-            catch (IndexOutOfRangeException)
-            {
-                return (null, false);
-            }
-            catch (Exception e)
-            {
-                artist = artist.Replace('+', ' ');
-                song = song.Replace('+', ' ');
-                DialogResult dialogResult = MessageBox.Show("Error: " + e + Environment.NewLine + "When searching: " + artist + " - " + song, "Exception!", MessageBoxButtons.AbortRetryIgnore);
-                if (dialogResult == DialogResult.Abort)
-                    return (null, true);
-                else if (dialogResult == DialogResult.Retry)
-                {
-                    Thread.Sleep(2000);
-                    return MusixmatchGet(artist, song);
-
-                }
-                else if (dialogResult == DialogResult.Ignore)
-                    return (null, false);
-                else
-                    return (null, true);
-            }
-        }
-
-        
+        }        
 
         private void OK_Click(object sender, EventArgs e)
         {
@@ -216,17 +157,17 @@ namespace MusicApp
             }
         }
         
-        private void APIbutton_Click(object sender, EventArgs e)
+        private async void APIbutton_Click(object sender, EventArgs e)
         {
-            var trackJSON = MusixmatchGet(aArtistTextBox.Text, titleTextBox.Text);
-            if (trackJSON.Item1 != null)
+            var data = await DataEnrichment.EnrichDataAsync(aArtistTextBox.Text, titleTextBox.Text);
+            if (data.Item1 != null)
             {
-                albumTextBox.Text = trackJSON.Item1.AlbumName.ToString();
+                albumTextBox.Text = data.Item1.AlbumTitle;
                 ///Enable this incase you want to chnage the year from the one drawn from the API.
-                //yearTextBox.Text = trackJSON.Item1.FirstReleaseDate.Year.ToString();
+                yearTextBox.Text = data.Item1.Year.ToString();
                 try
                 {
-                    genreBox.Text = trackJSON.Item1.PrimaryGenres.MusicGenreList[0].MusicGenre.MusicGenreName.ToString();
+                    genreBox.Text = data.Item1.Genre;
                 }
                 catch (IndexOutOfRangeException)
                 {

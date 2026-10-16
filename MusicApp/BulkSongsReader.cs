@@ -1,6 +1,5 @@
 using System.Collections.Concurrent;
 using System.Data;
-using TagLib.Jpeg;
 namespace MusicApp
 {
     // Reusable helper that reads music metadata using TagLib# in parallel and

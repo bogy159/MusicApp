@@ -37,7 +37,7 @@
             this.editToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.changeArtistsInfoToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.changeTitleToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.updateMusixmatchToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.updateEnrichmentToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.lyricsUpdateToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.otherToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.getHeadersToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -112,7 +112,7 @@
             this.editToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.changeArtistsInfoToolStripMenuItem,
             this.changeTitleToolStripMenuItem,
-            this.updateMusixmatchToolStripMenuItem,
+            this.updateEnrichmentToolStripMenuItem,
             this.lyricsUpdateToolStripMenuItem});
             this.editToolStripMenuItem.Name = "editToolStripMenuItem";
             this.editToolStripMenuItem.Size = new System.Drawing.Size(39, 20);
@@ -136,11 +136,11 @@
             // 
             // updateMusixmatchToolStripMenuItem
             // 
-            this.updateMusixmatchToolStripMenuItem.Enabled = false;
-            this.updateMusixmatchToolStripMenuItem.Name = "updateMusixmatchToolStripMenuItem";
-            this.updateMusixmatchToolStripMenuItem.Size = new System.Drawing.Size(181, 22);
-            this.updateMusixmatchToolStripMenuItem.Text = "Musixmatch Update";
-            this.updateMusixmatchToolStripMenuItem.Click += new System.EventHandler(this.MusixmatchUpdateToolStripMenuItem_Click);
+            this.updateEnrichmentToolStripMenuItem.Enabled = false;
+            this.updateEnrichmentToolStripMenuItem.Name = "updateEnrichmentToolStripMenuItem";
+            this.updateEnrichmentToolStripMenuItem.Size = new System.Drawing.Size(181, 22);
+            this.updateEnrichmentToolStripMenuItem.Text = "Enrichment Update";
+            this.updateEnrichmentToolStripMenuItem.Click += new System.EventHandler(this.MusixmatchUpdateToolStripMenuItem_Click);
             // 
             // lyricsUpdateToolStripMenuItem
             // 
@@ -409,7 +409,7 @@
         private System.Windows.Forms.ToolStripMenuItem changeTitleToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem otherToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem getHeadersToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem updateMusixmatchToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem updateEnrichmentToolStripMenuItem;
         private System.Windows.Forms.ProgressBar progressBar1;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Button CancelButton2;

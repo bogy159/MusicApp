@@ -126,13 +126,13 @@
       <dsig:DigestValue>JkGA5uxMlMJGecOSq8hDghbN59/bGwvv6L8iFuiVJm8=</dsig:DigestValue>
     </hash>
   </file>
-  <file name="MusicApp.dll" size="590336">
+  <file name="MusicApp.dll" size="598016">
     <hash>
       <dsig:Transforms>
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>9L5evyHneuVOkOKIJtyrUveeUaS26w3+fHPMQQPmE/c=</dsig:DigestValue>
+      <dsig:DigestValue>y4v2QTDLytR6+k1PXFZStBAsMrpUgoDo/HKLYeLENsI=</dsig:DigestValue>
     </hash>
   </file>
   <file name="MusicApp.dll.config" size="36320">

@@ -251,7 +251,7 @@
             APIbutton.Name = "APIbutton";
             APIbutton.Size = new Size(100, 35);
             APIbutton.TabIndex = 25;
-            APIbutton.Text = "MusixMatch";
+            APIbutton.Text = "Enrich Data";
             APIbutton.UseVisualStyleBackColor = true;
             APIbutton.Click += APIbutton_Click;
             // 

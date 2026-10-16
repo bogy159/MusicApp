@@ -213,7 +213,7 @@ namespace MusicApp
                 searchButton.Enabled = false;
                 changeArtistsInfoToolStripMenuItem.Enabled = false;
                 changeTitleToolStripMenuItem.Enabled = false;
-                updateMusixmatchToolStripMenuItem.Enabled = false;
+                updateEnrichmentToolStripMenuItem.Enabled = false;
                 lyricsUpdateToolStripMenuItem.Enabled = false;
             }
             else if (!(e.Error == null))
@@ -237,7 +237,7 @@ namespace MusicApp
             {
                 changeArtistsInfoToolStripMenuItem.Enabled = true;
                 changeTitleToolStripMenuItem.Enabled = true;
-                updateMusixmatchToolStripMenuItem.Enabled = true;
+                updateEnrichmentToolStripMenuItem.Enabled = true;
                 lyricsUpdateToolStripMenuItem.Enabled = true;
                 CurrentPageIndex = 1;
                 pageTextBox.Text = CurrentPageIndex.ToString() + "/" + CalculateTotalPages().ToString();
@@ -259,7 +259,7 @@ namespace MusicApp
         {
             changeArtistsInfoToolStripMenuItem.Enabled = false;
             changeTitleToolStripMenuItem.Enabled = false;
-            updateMusixmatchToolStripMenuItem.Enabled = false;
+            updateEnrichmentToolStripMenuItem.Enabled = false;
             lyricsUpdateToolStripMenuItem.Enabled = false;
             searchButton.Enabled = false;
             CancelButton2.Enabled = false;
@@ -284,7 +284,6 @@ namespace MusicApp
 
         private void OpenToolStripMenuItem_Click(object sender, EventArgs e)
         {
-
             using (var fbd = new FolderBrowserDialog())
             {
                 fbd.SelectedPath = path;
@@ -292,21 +291,27 @@ namespace MusicApp
 
                 if (result == DialogResult.OK && !string.IsNullOrWhiteSpace(fbd.SelectedPath))
                 {
-                    tableFin = null;
-                    DisableButtons();
                     string[] files = Directory.GetFiles(fbd.SelectedPath, "*.mp3", SearchOption.AllDirectories);
-                    System.Windows.Forms.MessageBox.Show("Files found: " + files.Length.ToString(), "Message");
-                    if (files.Length != 0)
+
+                    DialogResult dialogResult = MessageBox.Show("Files found: " + files.Length.ToString() + Environment.NewLine + "This Process can be slow once started. Do you want to continue?", "Countinue?", MessageBoxButtons.YesNo);
+
+                    if (dialogResult == DialogResult.Yes)
                     {
-                        path = fbd.SelectedPath;
-                        if (backgroundWorker1.IsBusy != true)
+                        tableFin = null;
+                        DisableButtons();
+                        if (files.Length != 0)
                         {
-                            CancelButton2.Enabled = true;
-                            backgroundWorker1.RunWorkerAsync();
+                            path = fbd.SelectedPath;
+                            if (backgroundWorker1.IsBusy != true)
+                            {
+                                CancelButton2.Enabled = true;
+                                backgroundWorker1.RunWorkerAsync();
+                            }
                         }
-
                     }
-
+                    else if (dialogResult == DialogResult.No)
+                    {
+                    }
                 }
             }
         }
@@ -580,34 +585,9 @@ namespace MusicApp
 
         private void RefreshButton_Click(object sender, EventArgs e)
         {
-            tableFin = null;
-            //beginningButton.Enabled = false;
-            //previousButton.Enabled = false;
-            //nextButton.Enabled = false;
-            //lastButton.Enabled = false;
-            //refreshButton.Enabled = false;
-            //refreshExtendedButton.Enabled = false;
-            //statsButton.Enabled = false;
-            DisableButtons();
             string[] files = Directory.GetFiles(path, "*.mp3", SearchOption.AllDirectories);
-            MessageBox.Show("Files found: " + files.Length.ToString(), "Message");
-            if (files.Length != 0)
-            {
-                if (backgroundWorker1.IsBusy != true)
-                {
-                    CancelButton2.Enabled = true;
-                    backgroundWorker1.RunWorkerAsync();
-                }
 
-            }
-        }
-
-        private void RefreshExtended_Click(object sender, EventArgs e)
-        {
-            string[] files = Directory.GetFiles(path, "*.mp3", SearchOption.AllDirectories);
-            //System.Windows.Forms.MessageBox.Show("Files found: " + files.Length.ToString(), "Message");
-
-            DialogResult dialogResult = MessageBox.Show("Files found: " + files.Length.ToString() + Environment.NewLine + "This Process can not be canceled once started. Do you want to continue?", "Countinue?", MessageBoxButtons.YesNo);
+            DialogResult dialogResult = MessageBox.Show("Files found: " + files.Length.ToString() + Environment.NewLine + "This Process can be slow once started. Do you want to continue?", "Countinue?", MessageBoxButtons.YesNo);
 
             if (dialogResult == DialogResult.Yes)
             {
@@ -615,12 +595,29 @@ namespace MusicApp
                 DisableButtons();
                 if (files.Length != 0)
                 {
-                    if (GetAllFiles() == true)
-                        SuccessfulDataGridLoad();
+                    if (backgroundWorker1.IsBusy != true)
+                    {
+                        CancelButton2.Enabled = true;
+                        backgroundWorker1.RunWorkerAsync();
+                    }
                 }
             }
             else if (dialogResult == DialogResult.No)
             {
+            }
+        }
+
+        private void RefreshExtended_Click(object sender, EventArgs e)
+        {
+            tableFin = null;
+            DisableButtons();
+            string[] files = Directory.GetFiles(path, "*.mp3", SearchOption.AllDirectories);
+
+            MessageBox.Show("Files found: " + files.Length.ToString(), "Message");
+            if (files.Length != 0)
+            {
+                if (GetAllFiles() == true)
+                    SuccessfulDataGridLoad();
             }
         }
 
@@ -646,7 +643,7 @@ namespace MusicApp
             statsForm.ShowDialog();
         }
 
-        private void MusixmatchUpdateToolStripMenuItem_Click(object sender, EventArgs e)
+        private async void MusixmatchUpdateToolStripMenuItem_Click(object sender, EventArgs e)
         {
             try
             {
@@ -694,8 +691,8 @@ namespace MusicApp
                             {
                                 // Last resort: use COM wrapper directly
                                 Shell32.Shell shell = new Shell32.Shell();
-                                Shell32.Folder objFolder = shell.NameSpace(System.IO.Path.GetDirectoryName(strFileName));
-                                Shell32.FolderItem folderItem = objFolder.ParseName(System.IO.Path.GetFileName(strFileName));
+                                Shell32.Folder objFolder = shell.NameSpace(Path.GetDirectoryName(strFileName));
+                                Shell32.FolderItem folderItem = objFolder.ParseName(Path.GetFileName(strFileName));
                                 genre = objFolder.GetDetailsOf(folderItem, 16);
                             }
 
@@ -703,39 +700,43 @@ namespace MusicApp
                         {
                             var fileshell = ShellFile.FromFilePath(strFileName);
                             ShellPropertyWriter propertyWriter = fileshell.Properties.GetPropertyWriter();
-
                             try
                             {
-                                var trackJSON = SingleEdit.MusixmatchGet(artist, title);
-
-                                if (trackJSON.Item1 != null)
+                                var newData = await DataEnrichment.EnrichDataAsync(artist, title);
+                                if (newData.Item1 != null)
                                 {
-                                    try
-                                    {
-                                        string yearMM = "";//trackJSON.Item1.FirstReleaseDate.Year.ToString();
-                                        if ((year.ToString() == "" || Convert.ToInt16(year) == 0) && yearMM != "" && Convert.ToInt16(yearMM) <= Convert.ToInt16(DateTime.Now.Year) && Convert.ToInt16(yearMM) > 1900)
-                                            propertyWriter.WriteProperty(SystemProperties.System.Media.Year, new int[] { Convert.ToInt16(yearMM) });
-                                    }
-                                    catch
-                                    {
-                                        errorList += Environment.NewLine + "Year error in: " + file.Name;
-                                    }
-                                    try
-                                    {
-                                        string albumMM = trackJSON.Item1.AlbumName.ToString();
-                                        if (album == "" && albumMM != "")
-                                            propertyWriter.WriteProperty(SystemProperties.System.Music.AlbumTitle, new string[] { albumMM });
-                                    }
-                                    catch
-                                    {
-                                        errorList += Environment.NewLine + "Album error in: " + file.Name;
-                                    }
-                                    if (genre.ToString() == "")
+                                    if (year.ToString() == "" || Convert.ToInt16(year) == 0)
                                     {
                                         try
                                         {
-                                            string genreMM = trackJSON.Item1.PrimaryGenres.MusicGenreList[0].MusicGenre.MusicGenreName.ToString();
-                                            if (genreMM.ToString() != "")
+                                            string yearMM = newData.Item1?.Year;
+                                            if (!string.IsNullOrEmpty(yearMM) && Convert.ToInt16(yearMM) <= Convert.ToInt16(DateTime.Now.Year) && Convert.ToInt16(yearMM) > 1900)
+                                                propertyWriter.WriteProperty(SystemProperties.System.Media.Year, new int[] { Convert.ToInt16(yearMM) });
+                                        }
+                                        catch
+                                        {
+                                            errorList += Environment.NewLine + "Year error in: " + file.Name;
+                                        }
+                                    }
+                                    if (album == "")
+                                    {
+                                        try
+                                        {
+                                            string albumMM = newData.Item1?.AlbumTitle;
+                                            if (!string.IsNullOrEmpty(albumMM))
+                                                propertyWriter.WriteProperty(SystemProperties.System.Music.AlbumTitle, new string[] { albumMM });
+                                        }
+                                        catch
+                                        {
+                                            errorList += Environment.NewLine + "Album error in: " + file.Name;
+                                        }
+                                    }
+                                    if (genre == "")
+                                    {
+                                        try
+                                        {
+                                            string genreMM = newData.Item1?.Genre;
+                                            if (genreMM != "")
                                                 propertyWriter.WriteProperty(SystemProperties.System.Music.Genre, new string[] { genreMM });
                                         }
                                         catch (IndexOutOfRangeException)
@@ -744,7 +745,7 @@ namespace MusicApp
                                         }
                                     }
                                 }
-                                else if (trackJSON.Item2 == true)
+                                else if (newData.Item2 == true)
                                     break;
                                 else
                                     errorList += Environment.NewLine + file.Name;
@@ -837,25 +838,16 @@ namespace MusicApp
 
                 if (result == DialogResult.OK && !string.IsNullOrWhiteSpace(fbd.SelectedPath))
                 {
-                    
+                    tableFin = null;
+                    DisableButtons();
                     string[] files = Directory.GetFiles(fbd.SelectedPath, "*.mp3", SearchOption.AllDirectories);
-                    //System.Windows.Forms.MessageBox.Show("Files found: " + files.Length.ToString(), "Message");
+                    MessageBox.Show("Files found: " + files.Length.ToString(), "Message");
 
-                    DialogResult dialogResult = MessageBox.Show("Files found: " + files.Length.ToString() + Environment.NewLine + "This Process can not be canceled once started. Do you want to continue?", "Countinue?", MessageBoxButtons.YesNo);
-
-                    if (dialogResult == DialogResult.Yes)
+                    if (files.Length != 0)
                     {
-                        tableFin = null;
-                        DisableButtons();
-                        if (files.Length != 0)
-                        {
-                            path = fbd.SelectedPath;
-                            if (GetAllFiles() == true)
-                                SuccessfulDataGridLoad();
-                        }
-                    }
-                    else if (dialogResult == DialogResult.No)
-                    {
+                        path = fbd.SelectedPath;
+                        if (GetAllFiles() == true)
+                            SuccessfulDataGridLoad();
                     }
                 }
             }
@@ -878,182 +870,14 @@ namespace MusicApp
                 dataGridView1.DataSource = SeachFileName(searchTextBox.Text, tableFin);
         }
 
-        private Song GetSingleSong(string location)
-        {
-            try
-            {
-                Song item = new Song
-                {
-                    Location = location
-                };
-
-                ShellObject song = ShellObject.FromParsingName(location);
-                // Try to use ShellObject properties where available; fall back to COM Shell32 details for older SDKs or missing properties
-                Shell32.Shell shell = null;
-                Shell32.Folder objFolder = null;
-                Shell32.FolderItem folderItem = null;
-                try
-                {
-                    shell = new Shell32.Shell();
-                    objFolder = shell.NameSpace(Path.GetDirectoryName(location));
-                    folderItem = objFolder?.ParseName(Path.GetFileName(location));
-                }
-                catch
-                {
-                    // Ignore: COM wrapper might not be available in some project types; we'll rely on ShellObject values where possible
-                }
-
-                var fileName = GetValue(song.Properties.GetProperty(SystemProperties.System.FileName));
-                item.FileName = !string.IsNullOrEmpty(fileName) ? fileName : (objFolder != null && folderItem != null ? objFolder.GetDetailsOf(folderItem, 0) : string.Empty);
-
-                item.AlbumArtist = GetValue(song.Properties.GetProperty(SystemProperties.System.Music.AlbumArtist));
-
-                // Try to read ContributingArtist via its property key (FMTID_MUSIC, PID 13).
-                // Fallback to ShellObject Artist or folder details index 13 if not available.
-                string contributing = string.Empty;
-                try
-                {
-                    var pkeyContrib = new PropertyKey(new Guid("56A3372E-CE9C-11D2-9F0E-006097C686F6"), 13);
-                    contributing = GetValue(song.Properties.GetProperty(pkeyContrib));
-                }
-                catch
-                {
-                    try
-                    {
-                        contributing = GetValue(song.Properties.GetProperty(SystemProperties.System.Music.Artist));
-                    }
-                    catch
-                    {
-                        // ignore - will fall back to shell folder details
-                    }
-                }
-                if (string.IsNullOrEmpty(contributing) && objFolder != null && folderItem != null)
-                    contributing = objFolder.GetDetailsOf(folderItem, 13);
-                item.ContributingArtist = contributing ?? string.Empty;
-
-                string title = GetValue(song.Properties.GetProperty(SystemProperties.System.Title));
-                item.SongTitle = !string.IsNullOrEmpty(title) ? title : (objFolder != null && folderItem != null ? objFolder.GetDetailsOf(folderItem, 21) : string.Empty);
-
-                var album = GetValue(song.Properties.GetProperty(SystemProperties.System.Music.AlbumTitle));
-                item.AlbumTitle = !string.IsNullOrEmpty(album) ? album : (objFolder != null && folderItem != null ? objFolder.GetDetailsOf(folderItem, 14) : string.Empty);
-
-                var year = GetValue(song.Properties.GetProperty(SystemProperties.System.Media.Year));
-                item.Year = !string.IsNullOrEmpty(year) ? year : (objFolder != null && folderItem != null ? objFolder.GetDetailsOf(folderItem, 15) : string.Empty);
-
-                var genre = GetValue(song.Properties.GetProperty(SystemProperties.System.Music.Genre));
-                item.Genre = !string.IsNullOrEmpty(genre) ? genre : (objFolder != null && folderItem != null ? objFolder.GetDetailsOf(folderItem, 16) : string.Empty);
-
-                // Length, Size and BitRate formatting is more reliable from the FolderItem details; fall back to ShellObject raw values if needed
-                item.Length = (objFolder != null && folderItem != null) ? objFolder.GetDetailsOf(folderItem, 27) : GetValue(song.Properties.GetProperty(SystemProperties.System.Media.Duration));
-                item.Size = (objFolder != null && folderItem != null) ? objFolder.GetDetailsOf(folderItem, 1) : GetValue(song.Properties.GetProperty(SystemProperties.System.Size));
-                item.BitRate = (objFolder != null && folderItem != null) ? objFolder.GetDetailsOf(folderItem, 28) : GetValue(song.Properties.GetProperty(SystemProperties.System.Audio.EncodingBitrate));
-                item.Lyrics = TagLib.File.Create(location).Tag?.Lyrics ?? GetValue(song.Properties.GetProperty(SystemProperties.System.Music.Lyrics));
-                return item;
-            }
-            catch (ShellException)
-            {
-                MessageBox.Show("File not found exception!", "Error");
-                return null;
-            }
-            catch (Exception e)
-            {
-                MessageBox.Show(e.ToString(), "Error");
-                return null;
-            }
-        }
-
         private bool GetAllFiles()
         {
             try
             {
                 string[] files = Directory.GetFiles(path, "*.mp3", SearchOption.AllDirectories);
-
                 var table = BulkSongsReader.ReadSongsAsync(files, 10, new Progress<int>(percent => progressBar1.Value = percent)).Result;
                 tableFin = BulkSongsReader.ToDataTable(table);
                 return true;
-                /*
-                DataTable table = new DataTable();
-                table.Columns.Add("No", typeof(int));
-                table.Columns.Add("File Name", typeof(string));
-                table.Columns.Add("Fix Name");
-                table.Columns.Add("Needed Changes in Artists");
-                table.Columns.Add("Needed Changes in Title");
-                table.Columns.Add("Album Artist");
-                table.Columns.Add("Contribution Artist");
-                table.Columns.Add("Title");
-                table.Columns.Add("Genre");
-                table.Columns.Add("Album");
-                table.Columns.Add("Year");
-                table.Columns.Add("Length");
-                table.Columns.Add("Bit Rate");
-                table.Columns.Add("Size in MB", typeof(double));
-                table.Columns.Add("File Path");
-                table.Columns.Add("Has Lyrics");
-
-                for (int i = 0; i < files.Length; i++)
-                {
-                    DataRow row = table.NewRow();
-                    row["No"] = i + 1;
-
-                    FileInfo file = new FileInfo(files[i]);
-                    Song currentSong = GetSingleSong(file.DirectoryName + "\\" + file.Name);
-
-                    row["File Name"] = currentSong.FileName;
-                    row["Fix Name"] = NameCheck(currentSong.FileName);
-
-                    if (currentSong.AlbumArtist == "" || currentSong.AlbumArtist.Contains("ntitled") || currentSong.AlbumArtist.Contains("various") || currentSong.AlbumArtist.Contains("Various") || currentSong.AlbumArtist.Contains("nknown"))
-                    {
-                        //string name = GetValue(song.Properties.GetProperty(SystemProperties.System.FileName));
-                        string[] newName = Regex.Split(currentSong.FileName, "-");
-                        string[] newest = Regex.Split(newName[0], "\\.");
-
-                        if (newest.Length >= 2 && newest[1] != null)
-                            row["Needed Changes in Artists"] = newest[1];
-                    }
-
-                    else if (!string.Equals(currentSong.AlbumArtist, currentSong.ContributingArtist, StringComparison.OrdinalIgnoreCase))
-                        row["Needed Changes in Artists"] = "Different Artists";
-
-                    if (currentSong.SongTitle == "" || currentSong.SongTitle.Contains("ntitled") || currentSong.SongTitle.Contains("nknown") || currentSong.SongTitle.Contains("Track"))
-                    {
-                        //string name = GetValue(song.Properties.GetProperty(SystemProperties.System.FileName));
-                        string[] newName = Regex.Split(currentSong.FileName, "-");
-
-                        if (newName.Length >= 2 && newName[1] != null)
-                        {
-                            string[] newest = Regex.Split(newName[1], "\\.");
-                            row["Needed Changes in Title"] = newest[0];
-                        }
-                    }
-
-
-                    row["Album Artist"] = currentSong.AlbumArtist;
-                    row["Contribution Artist"] = currentSong.ContributingArtist;
-                    row["Title"] = currentSong.SongTitle;
-                    row["Genre"] = currentSong.Genre;
-                    row["Album"] = currentSong.AlbumTitle;
-                    row["Year"] = currentSong.Year;
-                    TimeSpan time = TimeSpan.Parse(currentSong.Length);
-                    row["Length"] = time.ToString(@"mm\:ss");
-                    row["Bit Rate"] = currentSong.BitRate;
-                    string[] subStrings = currentSong.Size.Split(' ');
-                    row["Size in MB"] = Convert.ToDouble(subStrings[0]);
-                    if (currentSong.Lyrics != "")
-                        row["Has Lyrics"] = "Yes";
-                    else
-                        row["Has Lyrics"] = "No";
-                    row["File Path"] = currentSong.Location;
-
-
-                    table.Rows.Add(row);
-                    tableFin = table;
-                    progressBar1.Value = Convert.ToInt32(100 * (i + 1) / files.Length);
-
-                    if (i == files.Length - 1)
-                        progressBar1.Value = 100;
-                }
-                return true;
-                */
             }
             catch (FileNotFoundException)
             {
