@@ -7,14 +7,14 @@
     <framework targetVersion="4.5" profile="Full" supportedRuntime="4.0.30319" />
   </compatibleFrameworks>
   <dependency>
-    <dependentAssembly dependencyType="install" codebase="MusicApp.dll.manifest" size="12475">
+    <dependentAssembly dependencyType="install" codebase="MusicApp.dll.manifest" size="12870">
       <assemblyIdentity name="MusicApp.exe" version="1.0.0.0" publicKeyToken="0000000000000000" language="neutral" processorArchitecture="msil" type="win32" />
       <hash>
         <dsig:Transforms>
           <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
         </dsig:Transforms>
         <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-        <dsig:DigestValue>Zr+cDukzOL6ygEINa707DJfq6+wfw7yWm/mB6Fzf13c=</dsig:DigestValue>
+        <dsig:DigestValue>bHxWMBTuAOCzVh6uQ/ksOjVCpxUsL5nPzha75aWpug8=</dsig:DigestValue>
       </hash>
     </dependentAssembly>
   </dependency>

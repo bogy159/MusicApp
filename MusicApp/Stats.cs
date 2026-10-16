@@ -138,19 +138,13 @@ namespace MusicApp
             for (int i = 1; i < sortedDT.Rows.Count; i++)
             {
                 if (sortedDT.Rows[i][2].ToString() == sortedDT.Rows[i - 1][2].ToString())
-                {
                     sortedDT.Rows[i].SetField(0, sortedDT.Rows[i - 1][0]);
-                }
                 else
-                {
                     sortedDT.Rows[i].SetField(0, i + 1);
-                }
                 progressBar2.Value = Convert.ToInt32(100 * (i + 1) / sortedDT.Rows.Count);
 
                 if (i == sortedDT.Rows.Count - 1)
-                {
                     progressBar2.Value = 100;
-                }
             }
             statsDataGridView.DataSource = sortedDT;
             textBox1.Text = sortedDT.Rows.Count.ToString();
@@ -165,46 +159,24 @@ namespace MusicApp
         {
             try
             {
-                if (comboBox1.SelectedItem.ToString() == "Album Artists")
+                var selected = (comboBox1.SelectedItem as string)?.Trim();
+                var sortKey = selected switch
                 {
-                    Sorting("Album Artist");
-                }
-                else if (comboBox1.SelectedItem.ToString() == "Contribution Artists")
-                {
-                    Sorting("Contribution Artist");
-                }
-                else if (comboBox1.SelectedItem.ToString() == "Albums")
-                {
-                    Sorting("Album");
-                }
-                else if (comboBox1.SelectedItem.ToString() == "Genres")
-                {
-                    Sorting("Genre");
-                }
-                else if (comboBox1.SelectedItem.ToString() == "Years")
-                {
-                    Sorting("Year");
-                }
-                else if (comboBox1.SelectedItem.ToString() == "Decades")
-                {
-                    Sorting("Year");
-                }
-                else if (comboBox1.SelectedItem.ToString() == "Have Lyrics")
-                {
-                    Sorting("Has Lyrics");
-                }
-                else if (comboBox1.SelectedItem.ToString() == "Average Durations")
-                {
-                    Sorting("Length");
-                }                
-                else if (comboBox1.SelectedItem.ToString() == "ID Numbers")
-                {
-                    Sorting("File Name");
-                }
-                else if (comboBox1.SelectedItem.ToString() == "Locations")
-                {
-                    Sorting("File Path");
-                }
+                    "Album Artists" => "Album Artist",
+                    "Contribution Artists" => "Contribution Artist",
+                    "Albums" => "Album",
+                    "Genres" => "Genre",
+                    "Years" => "Year",
+                    "Decades" => "Year",
+                    "Have Lyrics" => "Has Lyrics",
+                    "Average Durations" => "Length",
+                    "ID Numbers" => "File Name",
+                    "Locations" => "File Path",
+                    _ => null
+                };
+
+                if (sortKey != null)
+                    Sorting(sortKey);
             }
             catch (Exception x)
             {

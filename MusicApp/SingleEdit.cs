@@ -1,10 +1,8 @@
-﻿using Microsoft.WindowsAPICodePack.Shell;
+﻿using Microsoft.VisualBasic;
+using Microsoft.WindowsAPICodePack.Shell;
 using Microsoft.WindowsAPICodePack.Shell.PropertySystem;
 using Newtonsoft.Json;
-using System;
 using System.Text.RegularExpressions;
-using System.Threading;
-using System.Windows.Forms;
 using System.Xml;
 using unirest_net.http;
 
@@ -19,8 +17,7 @@ namespace MusicApp
             InitializeComponent();
             CancelButton = CancelButton2;
             locationBox.Text = location;
-            GetData(location);
-            
+            GetData(location);            
         }       
 
         public void GetData(string location)
@@ -34,16 +31,16 @@ namespace MusicApp
                 titleTextBox.Text = Index.GetValue(song.Properties.GetProperty(SystemProperties.System.Title));
                 albumTextBox.Text = Index.GetValue(song.Properties.GetProperty(SystemProperties.System.Music.AlbumTitle));
                 yearTextBox.Text = Index.GetValue(song.Properties.GetProperty(SystemProperties.System.Media.Year));
-                lyricsTextBox.Text = Index.GetValue(song.Properties.GetProperty(SystemProperties.System.Music.Lyrics));
-
+                lyricsTextBox.Text = TagLib.File.Create(location).Tag?.Lyrics ?? Index.GetValue(song.Properties.GetProperty(SystemProperties.System.Music.Lyrics));
+                
                 // Use WindowsAPICodePack ShellObject for properties where possible
                 try
                 {
                     var shellObj = ShellObject.FromParsingName(location);
                     // Fall back to Shell32 compatibility wrapper for details not exposed by ShellObject
                     Shell32.Shell shell = new Shell32.Shell();
-                    Shell32.Folder objFolder = shell.NameSpace(System.IO.Path.GetDirectoryName(location));
-                    var folderItem = objFolder?.ParseName(System.IO.Path.GetFileName(location));
+                    Shell32.Folder objFolder = shell.NameSpace(Path.GetDirectoryName(location));
+                    var folderItem = objFolder?.ParseName(Path.GetFileName(location));
                     contributingTextBox.Text = objFolder?.GetDetailsOf(folderItem, 13) ?? string.Empty;
                     genreBox.Text = objFolder?.GetDetailsOf(folderItem, 16) ?? string.Empty;
                 }
@@ -51,8 +48,8 @@ namespace MusicApp
                 {
                     // Fallback: attempt COM wrapper directly
                     Shell32.Shell shell = new Shell32.Shell();
-                    Shell32.Folder objFolder = shell.NameSpace(System.IO.Path.GetDirectoryName(location));
-                    Shell32.FolderItem folderItem = objFolder.ParseName(System.IO.Path.GetFileName(location));
+                    Shell32.Folder objFolder = shell.NameSpace(Path.GetDirectoryName(location));
+                    Shell32.FolderItem folderItem = objFolder.ParseName(Path.GetFileName(location));
                     contributingTextBox.Text = objFolder.GetDetailsOf(folderItem, 13);
                     genreBox.Text = objFolder.GetDetailsOf(folderItem, 16);
                 }
@@ -77,29 +74,20 @@ namespace MusicApp
             {
 
                 if (yearTextBox.Text != "" && Convert.ToInt16(yearTextBox.Text) <= Convert.ToInt16(DateTime.Now.Year) && Convert.ToInt16(yearTextBox.Text) > 1900)
-                {
                     propertyWriter.WriteProperty(SystemProperties.System.Media.Year, new int[] { Convert.ToInt16(yearTextBox.Text) });
-                }
                 else if (yearTextBox.Text == "" || Convert.ToInt16(yearTextBox.Text) == 0)
-                {
                     propertyWriter.WriteProperty(SystemProperties.System.Media.Year, new int[] { 0 });
-                }
                 else
                 {
                     DialogResult dialogResult = MessageBox.Show("Invalid year!" + Environment.NewLine + "Do you want to continue with the year change?", "Inpropper year!", MessageBoxButtons.YesNoCancel);
 
                     if (dialogResult == DialogResult.Yes)
-                    {
                         propertyWriter.WriteProperty(SystemProperties.System.Media.Year, new int[] { Convert.ToInt16(yearTextBox.Text) });
-                    }
                     else if (dialogResult == DialogResult.No)
                     {
-
                     }
                     else if (dialogResult == DialogResult.Cancel)
-                    {
                         return;
-                    }
                 }
 
                 propertyWriter.WriteProperty(SystemProperties.System.Music.AlbumArtist, new string[] { aArtistTextBox.Text });
@@ -120,10 +108,10 @@ namespace MusicApp
             }
             try
             {
-                string message = Index.NameCheck(nameTextBox.Text);
+                string message = Validators.NameCheck(nameTextBox.Text);
                 if (message == "")
                 {
-                    System.IO.File.Move(location, System.IO.Path.GetDirectoryName(location) + "\\" + nameTextBox.Text);
+                    File.Move(location, Path.GetDirectoryName(location) + "\\" + nameTextBox.Text);
                     Close();
                 }
                 else
@@ -132,22 +120,19 @@ namespace MusicApp
 
                     if (dialogResult == DialogResult.Yes)
                     {
-                        System.IO.File.Move(location, System.IO.Path.GetDirectoryName(location) + "\\" + nameTextBox.Text);
+                        File.Move(location, Path.GetDirectoryName(location) + "\\" + nameTextBox.Text);
                         Close();
                     }
                     else if (dialogResult == DialogResult.No)
-                    {
-                        
+                    {                        
                     }
                     else if (dialogResult == DialogResult.Cancel)
-                    {
                         Close();
-                    }
                 }
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                MessageBox.Show("Error: " + e, "Renaming error!");                
+                MessageBox.Show("Error: " + ex.Message, "Renaming error!");                
             }
         }
 
@@ -162,8 +147,7 @@ namespace MusicApp
                 string APIKey = "";
                 string url = "https://api.musixmatch.com/ws/1.1/track.search?format=json&callback=callback&q_track=" + song + "&q_artist=" + artist + "&s_track_rating=desc&quorum_factor=1&page_size=1&apikey=" + APIKey;
                 
-                HttpResponse<string> response = Unirest.get(url)
-                    .asJson<string>();
+                HttpResponse<string> response = Unirest.get(url).asJson<string>();
 
                 if(response.Code != 200)
                 {
@@ -171,19 +155,14 @@ namespace MusicApp
                     song = song.Replace('+', ' ');
                     DialogResult dialogResult = MessageBox.Show("Response code: " + response.Code + Environment.NewLine + "When searching: " + artist + " - " + song, "Server error!", MessageBoxButtons.AbortRetryIgnore);
                     if (dialogResult == DialogResult.Abort)
-                    {
                         return (null, true);
-                    }
                     else if (dialogResult == DialogResult.Retry)
                     {
                         Thread.Sleep(2000);
                         return MusixmatchGet(artist, song);
-
                     }
                     else if (dialogResult == DialogResult.Ignore)
-                    {
                         return (null, false);
-                    }
                 }
                 response.Code.ToString();
                 TrackSearchJSON.Main result = JsonConvert.DeserializeObject<TrackSearchJSON.Main>(response.Body.ToString());
@@ -200,9 +179,7 @@ namespace MusicApp
                 song = song.Replace('+', ' ');
                 DialogResult dialogResult = MessageBox.Show("Error: " + e + Environment.NewLine + "When searching: " + artist + " - " + song, "Exception!", MessageBoxButtons.AbortRetryIgnore);
                 if (dialogResult == DialogResult.Abort)
-                {
                     return (null, true);
-                }
                 else if (dialogResult == DialogResult.Retry)
                 {
                     Thread.Sleep(2000);
@@ -210,89 +187,13 @@ namespace MusicApp
 
                 }
                 else if (dialogResult == DialogResult.Ignore)
-                {
                     return (null, false);
-                }
                 else
-                {
                     return (null, true);
-                }
             }
         }
 
-        public static (string, bool) ChartLyricsGet (string artist, string song)
-        {
-            try
-            {
-                artist = artist.Trim();
-                artist = artist.Replace(' ', '+');
-                artist = artist.Replace("'", "");
-                song = song.Trim();
-                song = song.Replace(' ', '+');
-                song = song.Replace("'", "");
-                string url = "http://api.chartlyrics.com/apiv1.asmx/SearchLyricDirect?artist=" + artist + "&song=" + song;
-                HttpResponse<string> response = Unirest.get(url)
-                    .asJson<string>();
-
-                if (response.Code != 200)
-                {
-                    artist = artist.Replace('+', ' ');
-                    song = song.Replace('+', ' ');
-                    DialogResult dialogResult = MessageBox.Show("Response code: " + response.Code + Environment.NewLine + "When searching: " + artist + " - " + song, "Server error!", MessageBoxButtons.AbortRetryIgnore);
-                    if (dialogResult == DialogResult.Abort)
-                    {
-                        return (null, true);
-                    }
-                    else if (dialogResult == DialogResult.Retry)
-                    {
-                        Thread.Sleep(2000);
-                        return ChartLyricsGet(artist, song);
-
-                    }
-                    else if (dialogResult == DialogResult.Ignore)
-                    {
-                        return (null, false);
-                    }
-
-                }
-                response.Code.ToString();
-                XmlDocument doc = new XmlDocument();
-                doc.LoadXml(response.Body);
-
-                XmlNodeList parentNode = doc.GetElementsByTagName("Lyric");
-                
-                return (parentNode[0].InnerText, false);
-            }
-            catch (IndexOutOfRangeException)
-            {
-                return (null, false);
-            }
-
-            catch (Exception e)
-            {
-                artist = artist.Replace('+', ' ');
-                song = song.Replace('+', ' ');
-                DialogResult dialogResult = MessageBox.Show("Error: " + e + Environment.NewLine + "When searching: " + artist + " - " + song, "Exception!", MessageBoxButtons.AbortRetryIgnore);
-                if (dialogResult == DialogResult.Abort)
-                {
-                    return (null, true);
-                }
-                else if (dialogResult == DialogResult.Retry)
-                {
-                    Thread.Sleep(2000);
-                    return ChartLyricsGet(artist, song);
-
-                }
-                else if (dialogResult == DialogResult.Ignore)
-                {
-                    return (null, false);
-                }
-                else
-                {
-                    return (null, true);
-                }
-            }
-        }
+        
 
         private void OK_Click(object sender, EventArgs e)
         {
@@ -309,12 +210,9 @@ namespace MusicApp
             {
                 if (char.IsNumber(e.KeyChar))
                 {
-
                 }
                 else
-                {
                     e.Handled = e.KeyChar != (char)Keys.Back;
-                }
             }
         }
         
@@ -336,22 +234,18 @@ namespace MusicApp
                 }
             }
             else
-            {
                 MessageBox.Show("The search did not return any results.", "No Results.");
-            }
         }
 
         private void LyricsButton_Click(object sender, EventArgs e)
         {
-            string lyricsValues = ChartLyricsGet(aArtistTextBox.Text, titleTextBox.Text).Item1;
+            var lyrics = Lyrics.GetLyricsAsync(aArtistTextBox.Text, titleTextBox.Text).Result;
+
+            string lyricsValues = lyrics.Item1;
             if (lyricsValues == "")
-            {
                 MessageBox.Show("Lyrics of the song were not found.", "No Results.");
-            }
             else
-            {
                 lyricsTextBox.Text = lyricsValues;
-            }
         }
 
         private void QuickGetButton_Click(object sender, EventArgs e)

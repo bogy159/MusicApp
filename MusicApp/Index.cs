@@ -1,20 +1,14 @@
 ﻿using Microsoft.WindowsAPICodePack.Shell;
 using Microsoft.WindowsAPICodePack.Shell.PropertySystem;
-using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
-using System.IO;
-using System.Linq;
 using System.Text.RegularExpressions;
-using System.Windows.Forms;
 
 namespace MusicApp
 {
 
     public partial class Index : Form
-    {      
-
+    {
         public string path;
         public static DataTable tableFin;
         private int PgSize = 10;
@@ -91,96 +85,7 @@ namespace MusicApp
             DataTable dtOutput = whole.DefaultView.ToTable();
 
             return dtOutput;
-        }
-
-        public static string NameCheck(string filename)
-        {
-
-            for (int i = 0; i < filename.Length; i++)
-            {
-                if (filename[i] > sbyte.MaxValue)
-                {
-                    return "Not ASCII";
-                }
-                else if (filename[i] == 32)
-                {
-                    if (filename[i + 1] == 32)
-                    {
-                        return "Double Space";
-                    }
-                    else if (filename[i + 1] != 38 && filename[i + 1] != 45 && ((filename[i + 1] < 65 || filename[i + 1] > 90) && (filename[i + 1] < 48 || filename[i + 1] > 57)))
-                    {
-                        return "After Space";
-                    }
-                }
-                else if(filename[i] == 40)
-                {
-                    if (filename[i + 1] < 65 || filename[i + 1] > 90)
-                    {
-                        return "After (";
-                    }
-                    //else if (filename[filename.Length - 5] != 41)
-                    //{
-                    //    return "No )";
-                    //}
-                }
-            }         
-            if (!filename.EndsWith(".mp3"))
-            {
-                return "Not .mp3";
-            }            
-            else if (filename.Split().Count(r => r == "-") == 0)
-            {
-                return "No -";
-            }
-            else if (!filename.Contains('(') && filename.Contains(')'))
-            {
-                return "No (";
-            }
-            else if (filename.Contains('(') && !filename.Contains(')'))
-            {
-                return "No )";
-            }
-            else if (filename.Contains(".."))
-            {
-                return "Contains ..";
-            }
-            else if (filename.Count(x => x == '.') <= 1)
-            {
-                return "Just one .";
-            }
-            else if (filename[2] != 46 && filename[3] != 46)
-            {
-                return "First . missing";
-            }
-            else if (filename[0] < 48 || filename[0] > 57 || filename[1] < 48 || filename[1] > 57)
-            {
-                return "No numbers";
-            }
-            else if (filename[3] == 46 && (filename[2] < 48 || filename[2] > 57))
-            {
-                return "Wrong numbers";
-            }
-            else if (filename[2] == 46 && ((filename[3] < 65 || filename[3] > 90) && (filename[3] < 48 || filename[3] > 57)))
-            {
-                return "Capital letter";
-            }
-            else if (filename[3] == 46 && ((filename[4] < 65 || filename[4] > 90) && (filename[4] < 48 || filename[4] > 57)))
-            {
-                return "Capital letter 2";
-            }
-            else if (filename.Split().Count(r => r == "-") > 1)
-            {
-                if (filename.Contains(" - Cover"))
-                {
-                }
-                else
-                {
-                    return "Multiple -";
-                }
-            }
-            return "";
-        }
+        }        
              
         private void Bw_DoWork(object sender, DoWorkEventArgs e)
         {
@@ -238,17 +143,14 @@ namespace MusicApp
                         row["Bit Rate"] = GetValue(song.Properties.GetProperty(SystemProperties.System.Audio.EncodingBitrate));
                         var size = GetValue(song.Properties.GetProperty(SystemProperties.System.Size));
                         row["Size in MB"] = Convert.ToDouble(size) / (1024 * 1024);
-                        string falseName = NameCheck(GetValue(song.Properties.GetProperty(SystemProperties.System.FileName)));
+                        string falseName = Validators.NameCheck(GetValue(song.Properties.GetProperty(SystemProperties.System.FileName)));
                         row["Fix Name"] = falseName;
                         row["File Path"] = strFileName;
-                        if (GetValue(song.Properties.GetProperty(SystemProperties.System.Music.Lyrics)) != "")
-                        {
+                        var lyrics = TagLib.File.Create(strFileName).Tag?.Lyrics ?? GetValue(song.Properties.GetProperty(SystemProperties.System.Music.Lyrics));
+                        if (lyrics != "")
                             row["Has Lyrics"] = "Yes";
-                        }
                         else
-                        {
                             row["Has Lyrics"] = "No";
-                        }
 
                         if (albumArtist == "" || albumArtist.Contains("ntitled") || albumArtist.Contains("various") || albumArtist.Contains("Various") || albumArtist.Contains("nknown"))
                         {
@@ -257,13 +159,9 @@ namespace MusicApp
                             string[] newest = Regex.Split(newName[0], "\\.");
 
                             if (falseName != "")
-                            {
                                 row["Needed Changes in Album Artist"] = "Improper file name";
-                            }
                             else if (newest.Length >= 2 && newest[1] != null)
-                            {
                                 row["Needed Changes in Album Artist"] = newest[1];
-                            }                                                       
                         }
 
                         if (title == "" || title.Contains("ntitled") || title.Contains("nknown") || title.Contains("Track"))
@@ -272,9 +170,7 @@ namespace MusicApp
                             string[] newName = Regex.Split(name, "-");
 
                             if (falseName != "")
-                            {
                                 row["Needed Changes in Title"] = "Improper file name";
-                            }
                             else if (newName.Length >= 2 && newName[1] != null)
                             {
                                 string[] newest = Regex.Split(newName[1], "\\.");
@@ -289,9 +185,9 @@ namespace MusicApp
                 }
             }
 
-            catch (FileNotFoundException)
+            catch (FileNotFoundException ex)
             {
-                System.Windows.Forms.MessageBox.Show("File not found exception!", "Error");
+                MessageBox.Show("File not found exception!", ex.Message);
                 path = "";
             }
         }
@@ -307,13 +203,11 @@ namespace MusicApp
 
         private void Bw_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-            if ((e.Cancelled == true))
+            if (e.Cancelled == true)
             {
-                System.Windows.Forms.MessageBox.Show("Cancelled!", "Cancelled");
+                MessageBox.Show("Cancelled!", "Cancelled");
                 if (tableFin != null)
-                {
                     dataGridView1.DataSource = GetCurrentRecords(1, tableFin);
-                }
                 CancelButton2.Enabled = false;
                 changePgSizeButton.Enabled = false;
                 searchButton.Enabled = false;
@@ -322,17 +216,13 @@ namespace MusicApp
                 updateMusixmatchToolStripMenuItem.Enabled = false;
                 lyricsUpdateToolStripMenuItem.Enabled = false;
             }
-
             else if (!(e.Error == null))
             {
-                System.Windows.Forms.MessageBox.Show("Error!", "Error");
+                MessageBox.Show("Error!", "Error");
                 DisableButtons();
-        }
-
-            else
-            {
-                SuccessfulDataGridLoad();
             }
+            else
+                SuccessfulDataGridLoad();
         }
 
         private void SuccessfulDataGridLoad()
@@ -389,7 +279,7 @@ namespace MusicApp
         {
             path = null;
             tableFin = null;
-            System.Windows.Forms.Application.Exit();
+            Application.Exit();
         }
 
         private void OpenToolStripMenuItem_Click(object sender, EventArgs e)
@@ -430,7 +320,7 @@ namespace MusicApp
                 for (int i = 0; i < files.Length; i++)
                 {
                     FileInfo file = new FileInfo(files[i]);
-                    if (NameCheck(file.Name) == "")
+                    if (Validators.NameCheck(file.Name) == "")
                     {
                         var fileshell = ShellFile.FromFilePath(file.DirectoryName + "\\" + file.Name);
 
@@ -450,9 +340,7 @@ namespace MusicApp
                             contrArtist = string.Empty;
                         }
                         if (string.IsNullOrEmpty(contrArtist) && objFolder != null)
-                        {
                             contrArtist = objFolder.GetDetailsOf(folderItem, 13);
-                        }
 
                         if (contrArtist == "" || contrArtist.Contains("ntitled") || contrArtist.Contains("various") || contrArtist.Contains("Various") || contrArtist.Contains("nknown") || contrArtist.Contains("http") || contrArtist.Contains("www.") || contrArtist.Contains(".com"))
                         {
@@ -464,13 +352,7 @@ namespace MusicApp
                             try
                             {
                                 if (newest.Length >= 2 && newest[1] != null)
-                                {
                                     propertyWriter.WriteProperty(SystemProperties.System.Music.Artist, new string[] { newest[1] });
-                                }
-                                else if (newest.Length < 2)
-                                {
-                                }
-
                             }
                             finally
                             {
@@ -490,13 +372,7 @@ namespace MusicApp
                             try
                             {
                                 if (newest.Length >= 2 && newest[1] != null)
-                                {
                                     propertyWriter.WriteProperty(SystemProperties.System.Music.AlbumArtist, new string[] { newest[1] });
-                                }
-                                else if (newest.Length < 2)
-                                {
-                                }
-
                             }
                             finally
                             {
@@ -507,14 +383,12 @@ namespace MusicApp
                     progressBar1.Value = Convert.ToInt32(100 * (i + 1) / files.Length);
 
                     if (i == files.Length - 1)
-                    {
                         progressBar1.Value = 100;
-                    }
                 }
             }
-            catch (FileNotFoundException)
+            catch (FileNotFoundException ex)
             {
-                System.Windows.Forms.MessageBox.Show("Files not found exception!", "Message");
+                MessageBox.Show("Files not found exception!", ex.Message);
             }
         }
 
@@ -527,7 +401,7 @@ namespace MusicApp
                 for (int i = 0; i < files.Length; i++)
                 {
                     FileInfo file = new FileInfo(files[i]);
-                    if (NameCheck(file.Name) == "")
+                    if (Validators.NameCheck(file.Name) == "")
                     {
                         var fileshell = ShellFile.FromFilePath(file.DirectoryName + "\\" + file.Name);
 
@@ -547,9 +421,7 @@ namespace MusicApp
                             title = string.Empty;
                         }
                         if (string.IsNullOrEmpty(title) && objFolder != null)
-                        {
                             title = objFolder.GetDetailsOf(folderItem, 21);
-                        }
 
                         if (title == "" || title.Contains("ntitled") || title.Contains("nknown") || title.Contains("nknown") || title.Contains("http") || title.Contains("www.") || title.Contains(".com") || title.Contains("Track"))
                         {
@@ -564,7 +436,6 @@ namespace MusicApp
                                 try
                                 {
                                     propertyWriter.WriteProperty(SystemProperties.System.Title, new string[] { newest[0] });
-
                                 }
                                 finally
                                 {
@@ -576,14 +447,12 @@ namespace MusicApp
                     progressBar1.Value = Convert.ToInt32(100 * (i + 1) / files.Length);
 
                     if (i == files.Length - 1)
-                    {
                         progressBar1.Value = 100;
-                    }
                 }
             }
-            catch (FileNotFoundException)
+            catch (FileNotFoundException ex)
             {
-                MessageBox.Show("Files not found exception!", "Error!");
+                MessageBox.Show("Files not found exception!", ex.Message);
             }
         }
 
@@ -599,14 +468,14 @@ namespace MusicApp
 
             Shell32.Shell shell = new Shell32.Shell();
             var strFileName = "C:\\Music";
-            Shell32.Folder objFolder = shell.NameSpace(System.IO.Path.GetDirectoryName(strFileName));
-            Shell32.FolderItem folderItem = objFolder.ParseName(System.IO.Path.GetFileName(strFileName));
+            Shell32.Folder objFolder = shell.NameSpace(Path.GetDirectoryName(strFileName));
+            Shell32.FolderItem folderItem = objFolder.ParseName(Path.GetFileName(strFileName));
 
 
             for (int i = 0; i < short.MaxValue; i++)
             {
                 string header = objFolder.GetDetailsOf(null, i);
-                if (String.IsNullOrEmpty(header))
+                if (string.IsNullOrEmpty(header))
                     break;
                 arrHeaders.Add(header);
             }
@@ -630,19 +499,14 @@ namespace MusicApp
                 row["No"] = i + 1;
                 row["Header Name"] = attrName;
                 table.Rows.Add(row);
-
             }
-
             dataGridView1.DataSource = table;
-
         }
 
         private void CancelButton_Click(object sender, EventArgs e)
         {
             if (backgroundWorker1.WorkerSupportsCancellation == true)
-            {
                 backgroundWorker1.CancelAsync();
-            }
         }
 
         private void PreviousButton_Click(object sender, EventArgs e)
@@ -726,7 +590,7 @@ namespace MusicApp
             //statsButton.Enabled = false;
             DisableButtons();
             string[] files = Directory.GetFiles(path, "*.mp3", SearchOption.AllDirectories);
-            System.Windows.Forms.MessageBox.Show("Files found: " + files.Length.ToString(), "Message");
+            MessageBox.Show("Files found: " + files.Length.ToString(), "Message");
             if (files.Length != 0)
             {
                 if (backgroundWorker1.IsBusy != true)
@@ -752,14 +616,11 @@ namespace MusicApp
                 if (files.Length != 0)
                 {
                     if (GetAllFiles() == true)
-                    {
                         SuccessfulDataGridLoad();
-                    }
                 }
             }
             else if (dialogResult == DialogResult.No)
             {
-
             }
         }
 
@@ -783,7 +644,6 @@ namespace MusicApp
         {
             Stats statsForm = new Stats();
             statsForm.ShowDialog();
-
         }
 
         private void MusixmatchUpdateToolStripMenuItem_Click(object sender, EventArgs e)
@@ -828,9 +688,7 @@ namespace MusicApp
 
                                 // If genre still empty, try to read from ShellObject properties
                                 if (string.IsNullOrEmpty(genre))
-                                {
                                     genre = GetValue(shellObj.Properties.GetProperty(SystemProperties.System.Music.Genre));
-                                }
                             }
                             catch
                             {
@@ -856,9 +714,7 @@ namespace MusicApp
                                     {
                                         string yearMM = "";//trackJSON.Item1.FirstReleaseDate.Year.ToString();
                                         if ((year.ToString() == "" || Convert.ToInt16(year) == 0) && yearMM != "" && Convert.ToInt16(yearMM) <= Convert.ToInt16(DateTime.Now.Year) && Convert.ToInt16(yearMM) > 1900)
-                                        {
                                             propertyWriter.WriteProperty(SystemProperties.System.Media.Year, new int[] { Convert.ToInt16(yearMM) });
-                                        }
                                     }
                                     catch
                                     {
@@ -868,9 +724,7 @@ namespace MusicApp
                                     {
                                         string albumMM = trackJSON.Item1.AlbumName.ToString();
                                         if (album == "" && albumMM != "")
-                                        {
                                             propertyWriter.WriteProperty(SystemProperties.System.Music.AlbumTitle, new string[] { albumMM });
-                                        }
                                     }
                                     catch
                                     {
@@ -882,9 +736,7 @@ namespace MusicApp
                                         {
                                             string genreMM = trackJSON.Item1.PrimaryGenres.MusicGenreList[0].MusicGenre.MusicGenreName.ToString();
                                             if (genreMM.ToString() != "")
-                                            {
                                                 propertyWriter.WriteProperty(SystemProperties.System.Music.Genre, new string[] { genreMM });
-                                            }
                                         }
                                         catch (IndexOutOfRangeException)
                                         {
@@ -893,13 +745,9 @@ namespace MusicApp
                                     }
                                 }
                                 else if (trackJSON.Item2 == true)
-                                {
                                     break;
-                                }
                                 else
-                                {
                                     errorList += Environment.NewLine + file.Name;
-                                }
                             }
                             finally
                             {
@@ -910,16 +758,14 @@ namespace MusicApp
                     progressBar1.Value = Convert.ToInt32(100 * (i + 1) / files.Length);
 
                     if (i == files.Length - 1)
-                    {
                         progressBar1.Value = 100;
-                    }
                 }
                 ErrorList errorForm = new ErrorList(errorList);
                 errorForm.ShowDialog();
             }
             catch (FileNotFoundException)
             {
-                System.Windows.Forms.MessageBox.Show("Files not found exception!", "Message");
+                MessageBox.Show("Files not found exception!", "Message");
             }
         }
 
@@ -939,31 +785,23 @@ namespace MusicApp
                     ShellObject song = ShellObject.FromParsingName(strFileName);
                     string artist = GetValue(song.Properties.GetProperty(SystemProperties.System.Music.AlbumArtist));
                     string title = GetValue(song.Properties.GetProperty(SystemProperties.System.Title));
-                    string lyrics = GetValue(song.Properties.GetProperty(SystemProperties.System.Music.Lyrics));
+                    string lyrics = TagLib.File.Create(strFileName).Tag?.Lyrics ?? GetValue(song.Properties.GetProperty(SystemProperties.System.Music.Lyrics));
 
                     if (artist != "" && title != "" && (lyrics == "" || lyrics.Contains(".com") || lyrics.Contains("www.") || lyrics.Contains("http")))
                     {
-                        //string lyrics = GetValue(song.Properties.GetProperty(SystemProperties.System.Music.Lyrics));
-
                         var fileshell = ShellFile.FromFilePath(strFileName);
                         ShellPropertyWriter propertyWriter = fileshell.Properties.GetPropertyWriter();
 
                         try
                         {
-                            var lyricsValues = SingleEdit.ChartLyricsGet(artist, title);
+                            var lyricsValues = Lyrics.GetLyricsAsync(artist, title).Result;
 
                             if (lyricsValues.Item1 != null && lyricsValues.Item1 != "")
-                            {
                                 propertyWriter.WriteProperty(SystemProperties.System.Music.Lyrics, new string[] { lyricsValues.Item1 });
-                            }
                             else if (lyricsValues.Item2 == true)
-                            {
                                 break;
-                            }
                             else
-                            {
                                 errorList += Environment.NewLine + file.Name;
-                            }
                         }
                         finally
                         {
@@ -974,16 +812,14 @@ namespace MusicApp
                     progressBar1.Value = Convert.ToInt32(100 * (i + 1) / files.Length);
 
                     if (i == files.Length - 1)
-                    {
                         progressBar1.Value = 100;
-                    }
                 }
                 ErrorList errorForm = new ErrorList(errorList);
                 errorForm.ShowDialog();
             }
-            catch (FileNotFoundException)
+            catch (FileNotFoundException ex)
             {
-                System.Windows.Forms.MessageBox.Show("Files not found exception!", "Error!");
+                MessageBox.Show("Files not found exception!", ex.Message);
             }
         }
 
@@ -1015,16 +851,12 @@ namespace MusicApp
                         {
                             path = fbd.SelectedPath;
                             if (GetAllFiles() == true)
-                            {
                                 SuccessfulDataGridLoad();
-                            }
                         }
                     }
                     else if (dialogResult == DialogResult.No)
                     {
-
                     }
-
                 }
             }
         }
@@ -1035,20 +867,15 @@ namespace MusicApp
         {
             if (char.IsNumber(e.KeyChar))
             {
-
             }
             else
-            {
                 e.Handled = e.KeyChar != (char)Keys.Back;
-            }
         }
 
         private void SearchTextBox_KeyPress(object sender, KeyPressEventArgs e)
         {
             if (e.KeyChar == Convert.ToChar(Keys.Enter) && searchButton.Enabled == true)
-            {
                 dataGridView1.DataSource = SeachFileName(searchTextBox.Text, tableFin);
-            }
         }
 
         private Song GetSingleSong(string location)
@@ -1068,8 +895,8 @@ namespace MusicApp
                 try
                 {
                     shell = new Shell32.Shell();
-                    objFolder = shell.NameSpace(System.IO.Path.GetDirectoryName(location));
-                    folderItem = objFolder?.ParseName(System.IO.Path.GetFileName(location));
+                    objFolder = shell.NameSpace(Path.GetDirectoryName(location));
+                    folderItem = objFolder?.ParseName(Path.GetFileName(location));
                 }
                 catch
                 {
@@ -1101,9 +928,7 @@ namespace MusicApp
                     }
                 }
                 if (string.IsNullOrEmpty(contributing) && objFolder != null && folderItem != null)
-                {
                     contributing = objFolder.GetDetailsOf(folderItem, 13);
-                }
                 item.ContributingArtist = contributing ?? string.Empty;
 
                 string title = GetValue(song.Properties.GetProperty(SystemProperties.System.Title));
@@ -1122,8 +947,7 @@ namespace MusicApp
                 item.Length = (objFolder != null && folderItem != null) ? objFolder.GetDetailsOf(folderItem, 27) : GetValue(song.Properties.GetProperty(SystemProperties.System.Media.Duration));
                 item.Size = (objFolder != null && folderItem != null) ? objFolder.GetDetailsOf(folderItem, 1) : GetValue(song.Properties.GetProperty(SystemProperties.System.Size));
                 item.BitRate = (objFolder != null && folderItem != null) ? objFolder.GetDetailsOf(folderItem, 28) : GetValue(song.Properties.GetProperty(SystemProperties.System.Audio.EncodingBitrate));
-
-                item.Lyrics = GetValue(song.Properties.GetProperty(SystemProperties.System.Music.Lyrics));
+                item.Lyrics = TagLib.File.Create(location).Tag?.Lyrics ?? GetValue(song.Properties.GetProperty(SystemProperties.System.Music.Lyrics));
                 return item;
             }
             catch (ShellException)
@@ -1144,6 +968,10 @@ namespace MusicApp
             {
                 string[] files = Directory.GetFiles(path, "*.mp3", SearchOption.AllDirectories);
 
+                var table = BulkSongsReader.ReadSongsAsync(files, 10, new Progress<int>(percent => progressBar1.Value = percent)).Result;
+                tableFin = BulkSongsReader.ToDataTable(table);
+                return true;
+                /*
                 DataTable table = new DataTable();
                 table.Columns.Add("No", typeof(int));
                 table.Columns.Add("File Name", typeof(string));
@@ -1180,15 +1008,11 @@ namespace MusicApp
                         string[] newest = Regex.Split(newName[0], "\\.");
 
                         if (newest.Length >= 2 && newest[1] != null)
-                        {
                             row["Needed Changes in Artists"] = newest[1];
-                        }
                     }
 
                     else if (!string.Equals(currentSong.AlbumArtist, currentSong.ContributingArtist, StringComparison.OrdinalIgnoreCase))
-                    {
                         row["Needed Changes in Artists"] = "Different Artists";
-                    }
 
                     if (currentSong.SongTitle == "" || currentSong.SongTitle.Contains("ntitled") || currentSong.SongTitle.Contains("nknown") || currentSong.SongTitle.Contains("Track"))
                     {
@@ -1202,6 +1026,7 @@ namespace MusicApp
                         }
                     }
 
+
                     row["Album Artist"] = currentSong.AlbumArtist;
                     row["Contribution Artist"] = currentSong.ContributingArtist;
                     row["Title"] = currentSong.SongTitle;
@@ -1214,13 +1039,9 @@ namespace MusicApp
                     string[] subStrings = currentSong.Size.Split(' ');
                     row["Size in MB"] = Convert.ToDouble(subStrings[0]);
                     if (currentSong.Lyrics != "")
-                    {
                         row["Has Lyrics"] = "Yes";
-                    }
                     else
-                    {
                         row["Has Lyrics"] = "No";
-                    }
                     row["File Path"] = currentSong.Location;
 
 
@@ -1229,29 +1050,26 @@ namespace MusicApp
                     progressBar1.Value = Convert.ToInt32(100 * (i + 1) / files.Length);
 
                     if (i == files.Length - 1)
-                    {
                         progressBar1.Value = 100;
-                    }
                 }
                 return true;
+                */
             }
             catch (FileNotFoundException)
             {
-                System.Windows.Forms.MessageBox.Show("File not found exception!", "Error");
+                MessageBox.Show("File not found exception!", "Error");
                 path = "";
                 return false;
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                MessageBox.Show(e.ToString(), "Error!");
+                MessageBox.Show(ex.ToString(), "Error!");
                 path = "";
                 return false;
             }
         }
 
-
         #region Unused
-
         private void SomethingElseToolStripMenuItem_Click(object sender, EventArgs e)
         {
 
@@ -1276,12 +1094,6 @@ namespace MusicApp
         {
 
         }
-
-
-
-        #endregion Unused
-
-        
+        #endregion Unused        
     }
-
 }

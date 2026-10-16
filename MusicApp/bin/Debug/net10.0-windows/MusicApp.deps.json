@@ -22,6 +22,7 @@
           "System.Reactive.Core": "6.1.0",
           "System.Reactive.Interfaces": "6.1.0",
           "System.Reactive.Linq": "6.1.0",
+          "TagLibSharp": "2.3.0",
           "Unirest-API": "1.0.7.6"
         },
         "runtime": {
@@ -183,6 +184,14 @@
           }
         }
       },
+      "TagLibSharp/2.3.0": {
+        "runtime": {
+          "lib/netstandard2.0/TagLibSharp.dll": {
+            "assemblyVersion": "2.3.0.0",
+            "fileVersion": "2.3.0.0"
+          }
+        }
+      },
       "Unirest-API/1.0.7.6": {
         "dependencies": {
           "Microsoft.Bcl.Async": "1.0.168",
@@ -301,6 +310,13 @@
       "sha512": "sha512-fE/hLoAYtpftDginhvtMgxeGQNY87l+tu2729t7/i9mR2FSmCiKYFexnnE/My6TQo10y6p5SG5tLuLb3CDFQ6g==",
       "path": "system.reactive.linq/6.1.0",
       "hashPath": "system.reactive.linq.6.1.0.nupkg.sha512"
+    },
+    "TagLibSharp/2.3.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-Qo4z6ZjnIfbR3Us1Za5M2vQ97OWZPmODvVmepxZ8XW0UIVLGdO2T63/N3b23kCcyiwuIe0TQvMEQG8wUCCD1mA==",
+      "path": "taglibsharp/2.3.0",
+      "hashPath": "taglibsharp.2.3.0.nupkg.sha512"
     },
     "Unirest-API/1.0.7.6": {
       "type": "package",

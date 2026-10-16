@@ -126,13 +126,13 @@
       <dsig:DigestValue>JkGA5uxMlMJGecOSq8hDghbN59/bGwvv6L8iFuiVJm8=</dsig:DigestValue>
     </hash>
   </file>
-  <file name="MusicApp.dll" size="581120">
+  <file name="MusicApp.dll" size="590336">
     <hash>
       <dsig:Transforms>
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>n6sbNso7NtIu7yueZMNk4QSGhym/JI49V0TJTLPOJ8g=</dsig:DigestValue>
+      <dsig:DigestValue>9L5evyHneuVOkOKIJtyrUveeUaS26w3+fHPMQQPmE/c=</dsig:DigestValue>
     </hash>
   </file>
   <file name="MusicApp.dll.config" size="36320">
@@ -241,6 +241,15 @@
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
       <dsig:DigestValue>6AcBN/wH7+uP0A4WB6CWx3GO4YFMayAy5MuGX1zwQqk=</dsig:DigestValue>
+    </hash>
+  </file>
+  <file name="TagLibSharp.dll" size="500224">
+    <hash>
+      <dsig:Transforms>
+        <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
+      </dsig:Transforms>
+      <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
+      <dsig:DigestValue>2tk7FS1Vz2pYsgN7z53TS0XYd2H+XtYaIys9RkHSpdM=</dsig:DigestValue>
     </hash>
   </file>
   <file name="Vlademareous-Music-Clef.ico" size="102134">
