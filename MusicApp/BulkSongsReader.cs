@@ -12,7 +12,7 @@ namespace MusicApp
         /// <param name="files">Enumerable of file paths to read.</param>
         /// <param name="maxDegreeOfParallelism">If <=0, Environment.ProcessorCount is used.</param>
         /// <param name="progress">Optional progress reporter (reports processed count).</param>
-        public static async Task<List<SongExtended>> ReadSongsAsync(IEnumerable<string> files, int maxDegreeOfParallelism = 0, IProgress<int>? progress = null)
+        public static async Task<List<SongExtended>> ReadSongsAsync(IEnumerable<string> files, int maxDegreeOfParallelism = 10, IProgress<int>? progress = null)
         {
             var fileArray = files as string[] ?? files.ToArray();
             if (maxDegreeOfParallelism <= 0) maxDegreeOfParallelism = Math.Max(1, Environment.ProcessorCount);
@@ -20,6 +20,13 @@ namespace MusicApp
             var bag = new ConcurrentBag<SongExtended>();
             int processed = 0;
             var options = new ParallelOptions { MaxDegreeOfParallelism = maxDegreeOfParallelism };
+
+            // Progress reporting: aim for ~100 updates and also throttle by time to keep UI smooth.
+            int total = fileArray.Length;
+            const int targetUpdates = 10;
+            int chunk = Math.Max(1, total / targetUpdates);
+            var sw = System.Diagnostics.Stopwatch.StartNew();
+            long lastReportMs = 0;
 
             await Parallel.ForEachAsync(fileArray, options, async (file, ct) =>
             {
@@ -64,7 +71,27 @@ namespace MusicApp
                 finally
                 {
                     var count = Interlocked.Increment(ref processed);
-                    progress?.Report(count);
+
+                    // Decide whether to report: every 'chunk' items, always on final item, or at most once every 200ms
+                    bool shouldReport = false;
+                    if (count == total) shouldReport = true;
+                    else if (count % chunk == 0) shouldReport = true;
+                    else
+                    {
+                        var elapsed = sw.ElapsedMilliseconds;
+                        var last = Interlocked.Read(ref lastReportMs);
+                        if (elapsed - last >= 200)
+                        {
+                            Interlocked.Exchange(ref lastReportMs, elapsed);
+                            shouldReport = true;
+                        }
+                    }
+
+                    if (shouldReport)
+                    {
+                        int percent = total == 0 ? 100 : (int)((count * 100L) / total);
+                        progress?.Report(percent);
+                    }
                 }
             }).ConfigureAwait(false);
 
