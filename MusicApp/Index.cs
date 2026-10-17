@@ -6,7 +6,6 @@ using System.Text.RegularExpressions;
 
 namespace MusicApp
 {
-
     public partial class Index : Form
     {
         public string path;
@@ -643,7 +642,7 @@ namespace MusicApp
             statsForm.ShowDialog();
         }
 
-        private async void MusixmatchUpdateToolStripMenuItem_Click(object sender, EventArgs e)
+        private async void EnrichmentUpdateToolStripMenuItem_Click(object sender, EventArgs e)
         {
             try
             {
@@ -770,7 +769,7 @@ namespace MusicApp
             }
         }
 
-        private void LyricsUpdateToolStripMenuItem_Click(object sender, EventArgs e)
+        private async void LyricsUpdateToolStripMenuItem_Click(object sender, EventArgs e)
         {
             try
             {
@@ -795,7 +794,7 @@ namespace MusicApp
 
                         try
                         {
-                            var lyricsValues = Lyrics.GetLyricsAsync(artist, title).Result;
+                            var lyricsValues = await Lyrics.GetLyricsAsync(artist, title);
 
                             if (lyricsValues.Item1 != null && lyricsValues.Item1 != "")
                                 propertyWriter.WriteProperty(SystemProperties.System.Music.Lyrics, new string[] { lyricsValues.Item1 });

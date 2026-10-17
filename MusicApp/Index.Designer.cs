@@ -140,7 +140,7 @@
             this.updateEnrichmentToolStripMenuItem.Name = "updateEnrichmentToolStripMenuItem";
             this.updateEnrichmentToolStripMenuItem.Size = new System.Drawing.Size(181, 22);
             this.updateEnrichmentToolStripMenuItem.Text = "Enrichment Update";
-            this.updateEnrichmentToolStripMenuItem.Click += new System.EventHandler(this.MusixmatchUpdateToolStripMenuItem_Click);
+            this.updateEnrichmentToolStripMenuItem.Click += new System.EventHandler(this.EnrichmentUpdateToolStripMenuItem_Click);
             // 
             // lyricsUpdateToolStripMenuItem
             // 

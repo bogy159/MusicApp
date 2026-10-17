@@ -178,9 +178,9 @@ namespace MusicApp
                 MessageBox.Show("The search did not return any results.", "No Results.");
         }
 
-        private void LyricsButton_Click(object sender, EventArgs e)
+        private async void LyricsButton_Click(object sender, EventArgs e)
         {
-            var lyrics = Lyrics.GetLyricsAsync(aArtistTextBox.Text, titleTextBox.Text).Result;
+            var lyrics = await Lyrics.GetLyricsAsync(aArtistTextBox.Text, titleTextBox.Text);
 
             string lyricsValues = lyrics.Item1;
             if (lyricsValues == "")
