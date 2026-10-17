@@ -1,5 +1,3 @@
-using System;
-
 namespace Shell32
 {
     // Lightweight COM wrapper around Shell.Application to avoid a COMReference in SDK-style projects.

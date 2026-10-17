@@ -134,7 +134,7 @@
             this.changeTitleToolStripMenuItem.Text = "Title";
             this.changeTitleToolStripMenuItem.Click += new System.EventHandler(this.ChangeTitleToolStripMenuItem_Click);
             // 
-            // updateMusixmatchToolStripMenuItem
+            // updateEnrichmentToolStripMenuItem
             // 
             this.updateEnrichmentToolStripMenuItem.Enabled = false;
             this.updateEnrichmentToolStripMenuItem.Name = "updateEnrichmentToolStripMenuItem";

@@ -1,7 +1,5 @@
-﻿using Newtonsoft.Json;
-using System.Text.Json;
+﻿using System.Text.Json;
 using System.Text.RegularExpressions;
-using unirest_net.http;
 
 namespace MusicApp
 {
@@ -24,11 +22,6 @@ namespace MusicApp
                 if (!string.IsNullOrWhiteSpace(musicBrainz.Genre) && !string.IsNullOrWhiteSpace(musicBrainz.AlbumTitle) && !string.IsNullOrWhiteSpace(musicBrainz.Year) && IsValidYear(musicBrainz.Year))
                     return (musicBrainz, false);
 
-                /*
-                var extraData = MusixmatchGet(artist, song);
-                if (extraData.Item1 != null)
-                    newData = await MusixmatchFormat(extraData.Item1);
-                */
                 result.AlbumTitle = new[] { iTunes.AlbumTitle, discogs.AlbumTitle, musicBrainz.AlbumTitle }
                     .FirstOrDefault(title => !string.IsNullOrWhiteSpace(title)) ?? string.Empty;
                 result.Genre = new[] { iTunes.Genre, discogs.Genre, musicBrainz.Genre }
@@ -309,73 +302,6 @@ namespace MusicApp
             {
                 return null;
             }
-        }
-
-        private static (TrackSearchJSON.Track, bool) MusixmatchGet(string artist, string song)
-        {
-            try
-            {
-                artist = artist.Trim();
-                artist = artist.Replace(' ', '+');
-                song = song.Trim();
-                song = song.Replace(' ', '+');
-                string APIKey = "";
-                string url = "https://api.musixmatch.com/ws/1.1/track.search?format=json&callback=callback&q_track=" + song + "&q_artist=" + artist + "&s_track_rating=desc&quorum_factor=1&page_size=1&apikey=" + APIKey;
-
-                HttpResponse<string> response = Unirest.get(url).asJson<string>();
-
-                if (response.Code != 200)
-                {
-                    artist = artist.Replace('+', ' ');
-                    song = song.Replace('+', ' ');
-                    DialogResult dialogResult = MessageBox.Show("Response code: " + response.Code + Environment.NewLine + "When searching: " + artist + " - " + song, "Server error!", MessageBoxButtons.AbortRetryIgnore);
-                    if (dialogResult == DialogResult.Abort)
-                        return (null, true);
-                    else if (dialogResult == DialogResult.Retry)
-                    {
-                        Thread.Sleep(2000);
-                        return MusixmatchGet(artist, song);
-                    }
-                    else if (dialogResult == DialogResult.Ignore)
-                        return (null, false);
-                }
-                response.Code.ToString();
-                TrackSearchJSON.Main result = JsonConvert.DeserializeObject<TrackSearchJSON.Main>(response.Body.ToString());
-
-                return (result.Message.Body.TrackList[0].Track, false);
-            }
-            catch (IndexOutOfRangeException)
-            {
-                return (null, false);
-            }
-            catch (Exception e)
-            {
-                artist = artist.Replace('+', ' ');
-                song = song.Replace('+', ' ');
-                DialogResult dialogResult = MessageBox.Show("Error: " + e + Environment.NewLine + "When searching: " + artist + " - " + song, "Exception!", MessageBoxButtons.AbortRetryIgnore);
-                if (dialogResult == DialogResult.Abort)
-                    return (null, true);
-                else if (dialogResult == DialogResult.Retry)
-                {
-                    Thread.Sleep(2000);
-                    return MusixmatchGet(artist, song);
-
-                }
-                else if (dialogResult == DialogResult.Ignore)
-                    return (null, false);
-                else
-                    return (null, true);
-            }
-        }
-    
-        private static async Task<Song> MusixmatchFormat(TrackSearchJSON.Track trackJSON)
-        {
-            return new Song()
-            {
-                AlbumTitle = trackJSON.AlbumName?.ToString(),
-                //Year = trackJSON.FirstReleaseDate?.Year.ToString(),
-                Genre = trackJSON.PrimaryGenres?.MusicGenreList[0]?.MusicGenre?.MusicGenreName?.ToString()
-            };
         }
 
         private static bool IsValidYear(string? value) => int.TryParse(value, out var year) && year > 0;

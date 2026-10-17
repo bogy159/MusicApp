@@ -1,11 +1,17 @@
 ﻿using System.Text.Json;
 using System.Xml;
-using unirest_net.http;
 
 namespace MusicApp
 {
     public static class Lyrics
     {
+        private static readonly HttpClient SharedHttpClient = new() { Timeout = TimeSpan.FromSeconds(10) };
+
+        static Lyrics()
+        {
+            SharedHttpClient.DefaultRequestHeaders.UserAgent.ParseAdd("MusicApp/1.0");
+        }
+
         public static async Task<(string, bool)> GetLyricsAsync(string artist, string song)
         {
             var lyrcisOvh = await LyrcisOvhGet(artist, song);
@@ -58,10 +64,7 @@ namespace MusicApp
                 }
 
                 var url = $"https://lrclib.net/api/search?artist_name={Uri.EscapeDataString(artist)}&track_name={Uri.EscapeDataString(song)}";
-                using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(10) };
-                http.DefaultRequestHeaders.UserAgent.ParseAdd("MusicApp/1.0");
-
-                using var response = await http.GetAsync(url).ConfigureAwait(false);
+                using var response = await SharedHttpClient.GetAsync(url).ConfigureAwait(false);
                 if (!response.IsSuccessStatusCode)
                     return null;
 
@@ -97,25 +100,21 @@ namespace MusicApp
             try
             {
                 artist = artist.Trim();
-                artist = artist.Replace(' ', '+');
-                artist = artist.Replace("'", "");
                 song = song.Trim();
-                song = song.Replace(' ', '+');
-                song = song.Replace("'", "");
-                string url = "http://api.chartlyrics.com/apiv1.asmx/SearchLyricDirect?artist=" + artist + "&song=" + song;
-                HttpResponse<string> response = Unirest.get(url).asJson<string>();
+                string url = $"http://api.chartlyrics.com/apiv1.asmx/SearchLyricDirect?artist={Uri.EscapeDataString(artist)}&song={Uri.EscapeDataString(song)}";
 
-                if (response.Code != 200)
+                using var response = await SharedHttpClient.GetAsync(url).ConfigureAwait(false);
+                if (!response.IsSuccessStatusCode)
                     return null;
-                response.Code.ToString();
+
                 XmlDocument doc = new XmlDocument();
-                doc.LoadXml(response.Body);
+                doc.LoadXml(await response.Content.ReadAsStringAsync().ConfigureAwait(false));
 
                 XmlNodeList parentNode = doc.GetElementsByTagName("Lyric");
 
-                return parentNode[0].InnerText;
+                return parentNode.Count > 0 ? parentNode[0]?.InnerText : null;
             }
-            catch (Exception e)
+            catch
             {
             }
             return null;
@@ -131,12 +130,12 @@ namespace MusicApp
                 var encSong = Uri.EscapeDataString(song);
                 string url = $"https://api.lyrics.ovh/v1/{encArtist}/{encSong}";
 
-                HttpResponse<string> response = Unirest.get(url).asJson<string>();
+                using var response = await SharedHttpClient.GetAsync(url).ConfigureAwait(false);
 
-                if (response.Code != 200)
+                if (!response.IsSuccessStatusCode)
                     return null;
 
-                var json = response.Body;
+                var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
                 if (string.IsNullOrWhiteSpace(json))
                     return null;
 
@@ -147,7 +146,7 @@ namespace MusicApp
                     return string.IsNullOrWhiteSpace(raw) ? null : raw.Trim();
                 }
             }
-            catch (Exception ex)
+            catch
             {
             }
             return null;

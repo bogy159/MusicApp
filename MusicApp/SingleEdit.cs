@@ -1,10 +1,6 @@
-﻿using Microsoft.VisualBasic;
-using Microsoft.WindowsAPICodePack.Shell;
+﻿using Microsoft.WindowsAPICodePack.Shell;
 using Microsoft.WindowsAPICodePack.Shell.PropertySystem;
-using Newtonsoft.Json;
 using System.Text.RegularExpressions;
-using System.Xml;
-using unirest_net.http;
 
 namespace MusicApp
 {
