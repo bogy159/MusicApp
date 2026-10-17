@@ -299,7 +299,7 @@ namespace MusicApp
             try
             {
                 string[] files = Directory.GetFiles(path, "*.mp3", SearchOption.AllDirectories);
-
+                var counter = 0;
                 for (int i = 0; i < files.Length; i++)
                 {
                     FileInfo file = new FileInfo(files[i]);
@@ -309,7 +309,7 @@ namespace MusicApp
                         TagLib.Tag tag = tagFile.Tag;
                         string contrArtist = tag.Performers?.FirstOrDefault() ?? string.Empty;
                         string albumArtist = tag.AlbumArtists?.FirstOrDefault() ?? string.Empty;
-                        string[] nameParts = Regex.Split(file.Name, "-");
+                        string[] nameParts = Regex.Split(file.Name, " - ");
                         string[] artistParts = Regex.Split(nameParts[0], "\\.");
                         if (artistParts.Length >= 2)
                         {
@@ -329,7 +329,10 @@ namespace MusicApp
                             }
 
                             if (changed)
+                            {
                                 tagFile.Save();
+                                counter++;
+                            }
                         }
                     }
                     progressBar1.Value = Convert.ToInt32(100 * (i + 1) / files.Length);
@@ -337,6 +340,7 @@ namespace MusicApp
                     if (i == files.Length - 1)
                         progressBar1.Value = 100;
                 }
+                MessageBox.Show($"{counter} files changed successfully!", "Success");
             }
             catch (FileNotFoundException ex)
             {
@@ -349,7 +353,7 @@ namespace MusicApp
             try
             {
                 string[] files = Directory.GetFiles(path, "*.mp3", SearchOption.AllDirectories);
-
+                var counter = 0;
                 for (int i = 0; i < files.Length; i++)
                 {
                     FileInfo file = new FileInfo(files[i]);
@@ -361,13 +365,14 @@ namespace MusicApp
 
                         if (title == "" || title.Contains("ntitled") || title.Contains("nknown") || title.Contains("http") || title.Contains("www.") || title.Contains(".com") || title.Contains("Track"))
                         {
-                            string[] newName = Regex.Split(file.Name, "-");
+                            string[] newName = Regex.Split(file.Name, " - ");
 
                             if (newName.Length >= 2 && newName[1] != null)
                             {
                                 string[] newest = Regex.Split(newName[1], "\\.");
                                 tag.Title = newest[0];
                                 tagFile.Save();
+                                counter++;
                             }
                         }
                     }
@@ -376,6 +381,7 @@ namespace MusicApp
                     if (i == files.Length - 1)
                         progressBar1.Value = 100;
                 }
+                MessageBox.Show($"{counter} files changed successfully!", "Success");
             }
             catch (FileNotFoundException ex)
             {
@@ -569,28 +575,26 @@ namespace MusicApp
                             if (newData.Item1 != null)
                             {
                                 bool changed = false;
-                                using (TagLib.File tagFile = TagLib.File.Create(file.FullName))
+                                using TagLib.File tagFile = TagLib.File.Create(file.FullName);
+                                TagLib.Tag tag = tagFile.Tag;
+                                if ((year == "" || year == "0") && Validators.IsValidYear(newData.Item1.Year) && uint.TryParse(newData.Item1.Year, out uint enrichedYear))
                                 {
-                                    TagLib.Tag tag = tagFile.Tag;
-                                    if ((year == "" || year == "0") && Validators.IsValidYear(newData.Item1.Year) && uint.TryParse(newData.Item1.Year, out uint enrichedYear))
-                                    {
-                                        tag.Year = enrichedYear;
-                                        changed = true;
-                                    }
-                                    if (album == "" && !string.IsNullOrEmpty(newData.Item1.AlbumTitle))
-                                    {
-                                        tag.Album = newData.Item1.AlbumTitle;
-                                        changed = true;
-                                    }
-                                    if (genre == "" && !string.IsNullOrEmpty(newData.Item1.Genre))
-                                    {
-                                        tag.Genres = [newData.Item1.Genre];
-                                        changed = true;
-                                    }
-
-                                    if (changed)
-                                        tagFile.Save();
+                                    tag.Year = enrichedYear;
+                                    changed = true;
                                 }
+                                if (album == "" && !string.IsNullOrEmpty(newData.Item1.AlbumTitle))
+                                {
+                                    tag.Album = newData.Item1.AlbumTitle;
+                                    changed = true;
+                                }
+                                if (genre == "" && !string.IsNullOrEmpty(newData.Item1.Genre))
+                                {
+                                    tag.Genres = [newData.Item1.Genre];
+                                    changed = true;
+                                }
+
+                                if (changed)
+                                    tagFile.Save();
                             }
                             else if (newData.Item2 == true)
                                 break;

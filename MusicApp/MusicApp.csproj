@@ -44,7 +44,6 @@
 	<None Include="App.config">
 	  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	</None>
-	<None Include="MusicApp_TemporaryKey.pfx" />
   </ItemGroup>
 
 	<!-- Resources are included implicitly by the SDK; no explicit EmbeddedResource entries to avoid duplicates -->

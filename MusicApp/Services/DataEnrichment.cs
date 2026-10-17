@@ -35,7 +35,7 @@ namespace MusicApp.Services
                     throw new Exception();
                 return (result, false);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 DialogResult dialogResult = MessageBox.Show("Error: " + Environment.NewLine + "When searching: " + artist + " - " + song, "Exception!", MessageBoxButtons.AbortRetryIgnore);
                 if (dialogResult == DialogResult.Abort)
