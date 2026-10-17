@@ -1,6 +1,4 @@
-﻿using Microsoft.WindowsAPICodePack.Shell;
-using Microsoft.WindowsAPICodePack.Shell.PropertySystem;
-using MusicApp.Helpers;
+﻿using MusicApp.Helpers;
 using MusicApp.Services;
 using System.ComponentModel;
 using System.Data;
@@ -35,24 +33,13 @@ namespace MusicApp
 
         }
 
-        public static string GetValue(IShellProperty value)
-        {
-            if (value == null || value.ValueAsObject == null)
-            {
-                return String.Empty;
-            }
-            return value.ValueAsObject.ToString();
-        }
-
         private int CalculateTotalPages()
         {
             int rowCount = tableFin.Rows.Count;
             int TotalPage = rowCount / PgSize;
             // if any row left after calculated pages, add one more page 
             if (rowCount % PgSize > 0)
-            {
                 TotalPage += 1;
-            }
             return TotalPage;
         }
 
@@ -90,12 +77,11 @@ namespace MusicApp
              
         private void Bw_DoWork(object sender, DoWorkEventArgs e)
         {
-            BackgroundWorker worker = sender as BackgroundWorker;
-            
+            BackgroundWorker worker = (BackgroundWorker)sender;
             try
             {
                 string[] files = Directory.GetFiles(path, "*.mp3", SearchOption.AllDirectories);
-                
+
                 DataTable table = new DataTable();
                 table.Columns.Add("No", typeof(int));
                 table.Columns.Add("File Name", typeof(string));
@@ -114,49 +100,41 @@ namespace MusicApp
 
                 for (int i = 0; i < files.Length; i++)
                 {
-
-                    if (worker.CancellationPending == true)
+                    if (worker.CancellationPending)
                     {
                         e.Cancel = true;
-                        break; 
+                        break;
                     }
 
-                    else
+                    FileInfo file = new FileInfo(files[i]);
+                    using (TagLib.File tagFile = TagLib.File.Create(file.FullName))
                     {
-                        FileInfo file = new FileInfo(files[i]);                        
-                        var strFileName = file.DirectoryName + "\\" + file.Name;
-                                       
+                        TagLib.Tag tag = tagFile.Tag;
+                        var properties = tagFile.Properties;
+                        string albumArtist = tag.AlbumArtists?.FirstOrDefault() ?? string.Empty;
+                        string title = tag.Title ?? string.Empty;
+                        string filename = file.Name;
+                        string year = tag.Year > 0 ? tag.Year.ToString() : string.Empty;
+                        string lyrics = tag.Lyrics ?? string.Empty;
+
                         DataRow row = table.NewRow();
                         row["No"] = i + 1;
-
-                        ShellObject song = ShellObject.FromParsingName(strFileName);
-                        var albumArtist = GetValue(song.Properties.GetProperty(SystemProperties.System.Music.AlbumArtist));
                         row["Album Artist"] = albumArtist;
-                        var filename = GetValue(song.Properties.GetProperty(SystemProperties.System.FileName));
                         row["File Name"] = filename;
-                        var title = GetValue(song.Properties.GetProperty(SystemProperties.System.Title));
                         row["Title"] = title;
-                        row["Album"] = GetValue(song.Properties.GetProperty(SystemProperties.System.Music.AlbumTitle));
-                        row["Year"] = GetValue(song.Properties.GetProperty(SystemProperties.System.Media.Year));
-                        var length = GetValue(song.Properties.GetProperty(SystemProperties.System.Media.Duration));
-                        TimeSpan span2 = TimeSpan.FromTicks(Convert.ToInt64(length));
-                        row["Length"] = span2.ToString(@"mm\:ss");// + "." + span2.Milliseconds;
-                        row["Bit Rate"] = GetValue(song.Properties.GetProperty(SystemProperties.System.Audio.EncodingBitrate));
-                        var size = GetValue(song.Properties.GetProperty(SystemProperties.System.Size));
-                        row["Size in MB"] = Convert.ToDouble(size) / (1024 * 1024);
-                        string falseName = Validators.NameCheck(GetValue(song.Properties.GetProperty(SystemProperties.System.FileName)));
+                        row["Album"] = tag.Album ?? string.Empty;
+                        row["Year"] = year;
+                        row["Length"] = properties.Duration.ToString(@"mm\:ss");
+                        row["Bit Rate"] = properties.AudioBitrate.ToString();
+                        row["Size in MB"] = file.Length / (1024d * 1024d);
+                        string falseName = Validators.NameCheck(filename);
                         row["Fix Name"] = falseName;
-                        row["File Path"] = strFileName;
-                        var lyrics = TagLib.File.Create(strFileName).Tag?.Lyrics ?? GetValue(song.Properties.GetProperty(SystemProperties.System.Music.Lyrics));
-                        if (lyrics != "")
-                            row["Has Lyrics"] = "Yes";
-                        else
-                            row["Has Lyrics"] = "No";
+                        row["File Path"] = file.FullName;
+                        row["Has Lyrics"] = string.IsNullOrEmpty(lyrics) ? "No" : "Yes";
 
-                        if (albumArtist == "" || albumArtist.Contains("ntitled") || albumArtist.Contains("various") || albumArtist.Contains("Various") || albumArtist.Contains("nknown"))
+                        if (string.IsNullOrEmpty(albumArtist) || albumArtist.Contains("ntitled") || albumArtist.Contains("various") || albumArtist.Contains("Various") || albumArtist.Contains("nknown"))
                         {
-                            string name = GetValue(song.Properties.GetProperty(SystemProperties.System.FileName));                            
-                            string[] newName = Regex.Split(name, "-");
+                            string[] newName = Regex.Split(filename, "-");
                             string[] newest = Regex.Split(newName[0], "\\.");
 
                             if (falseName != "")
@@ -167,8 +145,7 @@ namespace MusicApp
 
                         if (title == "" || title.Contains("ntitled") || title.Contains("nknown") || title.Contains("Track"))
                         {
-                            string name = GetValue(song.Properties.GetProperty(SystemProperties.System.FileName));
-                            string[] newName = Regex.Split(name, "-");
+                            string[] newName = Regex.Split(filename, "-");
 
                             if (falseName != "")
                                 row["Needed Changes in Title"] = "Improper file name";
@@ -180,9 +157,9 @@ namespace MusicApp
                         }
 
                         table.Rows.Add(row);
-                        worker.ReportProgress(i);
                         tableFin = table;
                     }
+                    worker.ReportProgress(i);
                 }
             }
 
@@ -328,62 +305,31 @@ namespace MusicApp
                     FileInfo file = new FileInfo(files[i]);
                     if (Validators.NameCheck(file.Name) == "")
                     {
-                        var fileshell = ShellFile.FromFilePath(file.DirectoryName + "\\" + file.Name);
-
-                        Shell shell = new Shell();
-                        var strFileName = file.DirectoryName + "\\" + file.Name;
-                        Folder objFolder = shell.NameSpace(Path.GetDirectoryName(strFileName));
-                        FolderItem folderItem = objFolder.ParseName(Path.GetFileName(strFileName));
-                        // Prefer ShellObject properties when available; fall back to folder details index 13
-                        string contrArtist = string.Empty;
-                        try
+                        using TagLib.File tagFile = TagLib.File.Create(file.FullName);
+                        TagLib.Tag tag = tagFile.Tag;
+                        string contrArtist = tag.Performers?.FirstOrDefault() ?? string.Empty;
+                        string albumArtist = tag.AlbumArtists?.FirstOrDefault() ?? string.Empty;
+                        string[] nameParts = Regex.Split(file.Name, "-");
+                        string[] artistParts = Regex.Split(nameParts[0], "\\.");
+                        if (artistParts.Length >= 2)
                         {
-                            var shellObj = ShellObject.FromParsingName(strFileName);
-                            contrArtist = GetValue(shellObj.Properties.GetProperty(SystemProperties.System.Music.Artist));
-                        }
-                        catch
-                        {
-                            contrArtist = string.Empty;
-                        }
-                        if (string.IsNullOrEmpty(contrArtist) && objFolder != null)
-                            contrArtist = objFolder.GetDetailsOf(folderItem, 13);
+                            string inferredArtist = artistParts[1];
+                            bool changed = false;
 
-                        if (contrArtist == "" || contrArtist.Contains("ntitled") || contrArtist.Contains("various") || contrArtist.Contains("Various") || contrArtist.Contains("nknown") || contrArtist.Contains("http") || contrArtist.Contains("www.") || contrArtist.Contains(".com"))
-                        {
-                            string name = objFolder.GetDetailsOf(folderItem, 0);
-                            string[] newName = Regex.Split(name, "-");
-                            string[] newest = Regex.Split(newName[0], "\\.");
+                            if (string.IsNullOrEmpty(contrArtist) || contrArtist.Contains("ntitled") || contrArtist.Contains("various") || contrArtist.Contains("Various") || contrArtist.Contains("nknown") || contrArtist.Contains("http") || contrArtist.Contains("www.") || contrArtist.Contains(".com"))
+                            {
+                                tag.Performers = [inferredArtist];
+                                changed = true;
+                            }
 
-                            ShellPropertyWriter propertyWriter = fileshell.Properties.GetPropertyWriter();
-                            try
+                            if (string.IsNullOrEmpty(albumArtist) || albumArtist.Contains("ntitled") || albumArtist.Contains("various") || albumArtist.Contains("Various") || albumArtist.Contains("nknown") || contrArtist.Contains("nknown") || contrArtist.Contains("http") || contrArtist.Contains("www.") || contrArtist.Contains(".com"))
                             {
-                                if (newest.Length >= 2 && newest[1] != null)
-                                    propertyWriter.WriteProperty(SystemProperties.System.Music.Artist, new string[] { newest[1] });
+                                tag.AlbumArtists = [inferredArtist];
+                                changed = true;
                             }
-                            finally
-                            {
-                                propertyWriter.Close();
-                            }
-                        }
-                        ShellObject song = ShellObject.FromParsingName(strFileName);
-                        var albumArtist = GetValue(song.Properties.GetProperty(SystemProperties.System.Music.AlbumArtist));
 
-                        if (albumArtist == "" || albumArtist.Contains("ntitled") || albumArtist.Contains("various") || albumArtist.Contains("Various") || albumArtist.Contains("nknown") || contrArtist.Contains("nknown") || contrArtist.Contains("http") || contrArtist.Contains("www.") || contrArtist.Contains(".com"))
-                        {
-                            string name = objFolder.GetDetailsOf(folderItem, 0);
-                            string[] newName = Regex.Split(name, "-");
-                            string[] newest = Regex.Split(newName[0], "\\.");
-
-                            ShellPropertyWriter propertyWriter = fileshell.Properties.GetPropertyWriter();
-                            try
-                            {
-                                if (newest.Length >= 2 && newest[1] != null)
-                                    propertyWriter.WriteProperty(SystemProperties.System.Music.AlbumArtist, new string[] { newest[1] });
-                            }
-                            finally
-                            {
-                                propertyWriter.Close();
-                            }
+                            if (changed)
+                                tagFile.Save();
                         }
                     }
                     progressBar1.Value = Convert.ToInt32(100 * (i + 1) / files.Length);
@@ -409,44 +355,19 @@ namespace MusicApp
                     FileInfo file = new FileInfo(files[i]);
                     if (Validators.NameCheck(file.Name) == "")
                     {
-                        var fileshell = ShellFile.FromFilePath(file.DirectoryName + "\\" + file.Name);
+                        using TagLib.File tagFile = TagLib.File.Create(file.FullName);
+                        TagLib.Tag tag = tagFile.Tag;
+                        string title = tag.Title ?? string.Empty;
 
-                        Shell shell = new Shell();
-                        var strFileName = file.DirectoryName + "\\" + file.Name;
-                        Folder objFolder = shell.NameSpace(System.IO.Path.GetDirectoryName(strFileName));
-                        FolderItem folderItem = objFolder.ParseName(System.IO.Path.GetFileName(strFileName));
-                        // Prefer ShellObject title property; fall back to folder details index 21
-                        string title = string.Empty;
-                        try
+                        if (title == "" || title.Contains("ntitled") || title.Contains("nknown") || title.Contains("http") || title.Contains("www.") || title.Contains(".com") || title.Contains("Track"))
                         {
-                            var shellObj = ShellObject.FromParsingName(strFileName);
-                            title = GetValue(shellObj.Properties.GetProperty(SystemProperties.System.Title));
-                        }
-                        catch
-                        {
-                            title = string.Empty;
-                        }
-                        if (string.IsNullOrEmpty(title) && objFolder != null)
-                            title = objFolder.GetDetailsOf(folderItem, 21);
-
-                        if (title == "" || title.Contains("ntitled") || title.Contains("nknown") || title.Contains("nknown") || title.Contains("http") || title.Contains("www.") || title.Contains(".com") || title.Contains("Track"))
-                        {
-                            string name = objFolder.GetDetailsOf(folderItem, 0);
-                            string[] newName = Regex.Split(name, "-");
+                            string[] newName = Regex.Split(file.Name, "-");
 
                             if (newName.Length >= 2 && newName[1] != null)
                             {
                                 string[] newest = Regex.Split(newName[1], "\\.");
-
-                                ShellPropertyWriter propertyWriter = fileshell.Properties.GetPropertyWriter();
-                                try
-                                {
-                                    propertyWriter.WriteProperty(SystemProperties.System.Title, new string[] { newest[0] });
-                                }
-                                finally
-                                {
-                                    propertyWriter.Close();
-                                }
+                                tag.Title = newest[0];
+                                tagFile.Save();
                             }
                         }
                     }
@@ -469,41 +390,12 @@ namespace MusicApp
             table.Columns.Add("No");
             table.Columns.Add("Header Name");
 
-            List<string> arrHeaders = new List<string>();
-            List<Tuple<int, string, string>> attributes = new List<Tuple<int, string, string>>();
-
-            Shell shell = new();
-            var strFileName = "C:\\Music";
-            Folder objFolder = shell.NameSpace(Path.GetDirectoryName(strFileName));
-            FolderItem folderItem = objFolder.ParseName(Path.GetFileName(strFileName));
-
-
-            for (int i = 0; i < short.MaxValue; i++)
+            string[] headers = ["Album Artist", "Artist", "Title", "Album", "Year", "Genre", "Lyrics", "Duration", "Bitrate"];
+            for (int i = 0; i < headers.Length; i++)
             {
-                string header = objFolder.GetDetailsOf(null, i);
-                if (string.IsNullOrEmpty(header))
-                    break;
-                arrHeaders.Add(header);
-            }
-
-            // The attributes list below will contain a tuple with attribute index, name and value
-            // Once you know the index of the attribute you want to get, 
-            // you can get it directly without looping, like this:
-            var Authors = objFolder.GetDetailsOf(folderItem, 20);
-
-            for (int i = 0; i < arrHeaders.Count; i++)
-            {
-                var attrName = arrHeaders[i];
-                var attrValue = objFolder.GetDetailsOf(folderItem, i);
-                var attrIdx = i;
-
-                attributes.Add(new Tuple<int, string, string>(attrIdx, attrName, attrValue));
-
-                //Debug.WriteLine("{0}\t{1}: {2}", i, attrName, attrValue);
-
                 DataRow row = table.NewRow();
                 row["No"] = i + 1;
-                row["Header Name"] = attrName;
+                row["Header Name"] = headers[i];
                 table.Rows.Add(row);
             }
             dataGridView1.DataSource = table;
@@ -653,108 +545,57 @@ namespace MusicApp
 
                 for (int i = 0; i < files.Length; i++)
                 {
-
                     FileInfo file = new FileInfo(files[i]);
-                    var strFileName = file.DirectoryName + "\\" + file.Name;
-
-                    ShellObject song = ShellObject.FromParsingName(strFileName);
-                    string artist = GetValue(song.Properties.GetProperty(SystemProperties.System.Music.AlbumArtist));
-                    string title = GetValue(song.Properties.GetProperty(SystemProperties.System.Title));
+                    string artist;
+                    string title;
+                    string year;
+                    string album;
+                    string genre;
+                    using (TagLib.File tagFile = TagLib.File.Create(file.FullName))
+                    {
+                        TagLib.Tag tag = tagFile.Tag;
+                        artist = tag.AlbumArtists?.FirstOrDefault() ?? tag.FirstAlbumArtist ?? string.Empty;
+                        title = tag.Title ?? string.Empty;
+                        year = tag.Year > 0 ? tag.Year.ToString() : string.Empty;
+                        album = tag.Album ?? string.Empty;
+                        genre = tag.FirstGenre ?? string.Empty;
+                    }
 
                     if (artist != "" && title != "")
                     {
-                        var year = GetValue(song.Properties.GetProperty(SystemProperties.System.Media.Year));
-                        string album = GetValue(song.Properties.GetProperty(SystemProperties.System.Music.AlbumTitle));
-                            // Prefer ShellObject properties; fall back to COM Shell32 for extended details if needed
-                            string genre = string.Empty;
-                            try
-                            {
-                                var shellObj = ShellObject.FromParsingName(strFileName);
-                                // COM wrapper may not be available in all project types; use it only if present
-                                try
-                                {
-                                    Shell shell = new();
-                                    Folder objFolder = shell.NameSpace(Path.GetDirectoryName(strFileName));
-                                    var folderItem = objFolder?.ParseName(Path.GetFileName(strFileName));
-                                    genre = objFolder?.GetDetailsOf(folderItem, 16) ?? string.Empty;
-                                }
-                                catch
-                                {
-                                    // If COM access fails, leave genre empty (we'll try to get genre from ShellObject below)
-                                    genre = string.Empty;
-                                }
-
-                                // If genre still empty, try to read from ShellObject properties
-                                if (string.IsNullOrEmpty(genre))
-                                    genre = GetValue(shellObj.Properties.GetProperty(SystemProperties.System.Music.Genre));
-                            }
-                            catch
-                            {
-                                // Last resort: use COM wrapper directly
-                                Shell shell = new();
-                                Folder objFolder = shell.NameSpace(Path.GetDirectoryName(strFileName));
-                                FolderItem folderItem = objFolder.ParseName(Path.GetFileName(strFileName));
-                                genre = objFolder.GetDetailsOf(folderItem, 16);
-                            }
-
-                        if (year.ToString() == "" || Convert.ToInt16(year) == 0 || album == "" || genre.ToString() == "")
+                        if (year == "" || year == "0" || album == "" || genre == "")
                         {
-                            var fileshell = ShellFile.FromFilePath(strFileName);
-                            ShellPropertyWriter propertyWriter = fileshell.Properties.GetPropertyWriter();
-                            try
+                            var newData = await DataEnrichment.EnrichDataAsync(artist, title);
+                            if (newData.Item1 != null)
                             {
-                                var newData = await DataEnrichment.EnrichDataAsync(artist, title);
-                                if (newData.Item1 != null)
+                                bool changed = false;
+                                using (TagLib.File tagFile = TagLib.File.Create(file.FullName))
                                 {
-                                    if (year.ToString() == "" || Convert.ToInt16(year) == 0)
+                                    TagLib.Tag tag = tagFile.Tag;
+                                    if ((year == "" || year == "0") && Validators.IsValidYear(newData.Item1.Year) && uint.TryParse(newData.Item1.Year, out uint enrichedYear))
                                     {
-                                        try
-                                        {
-                                            string yearMM = newData.Item1?.Year;
-                                            if (Validators.IsValidYear(yearMM))
-                                                propertyWriter.WriteProperty(SystemProperties.System.Media.Year, new int[] { Convert.ToInt16(yearMM) });
-                                        }
-                                        catch
-                                        {
-                                            errorList += Environment.NewLine + "Year error in: " + file.Name;
-                                        }
+                                        tag.Year = enrichedYear;
+                                        changed = true;
                                     }
-                                    if (album == "")
+                                    if (album == "" && !string.IsNullOrEmpty(newData.Item1.AlbumTitle))
                                     {
-                                        try
-                                        {
-                                            string albumMM = newData.Item1?.AlbumTitle;
-                                            if (!string.IsNullOrEmpty(albumMM))
-                                                propertyWriter.WriteProperty(SystemProperties.System.Music.AlbumTitle, new string[] { albumMM });
-                                        }
-                                        catch
-                                        {
-                                            errorList += Environment.NewLine + "Album error in: " + file.Name;
-                                        }
+                                        tag.Album = newData.Item1.AlbumTitle;
+                                        changed = true;
                                     }
-                                    if (genre == "")
+                                    if (genre == "" && !string.IsNullOrEmpty(newData.Item1.Genre))
                                     {
-                                        try
-                                        {
-                                            string genreMM = newData.Item1?.Genre;
-                                            if (genreMM != "")
-                                                propertyWriter.WriteProperty(SystemProperties.System.Music.Genre, new string[] { genreMM });
-                                        }
-                                        catch (IndexOutOfRangeException)
-                                        {
-                                            errorList += Environment.NewLine + "Genre error in: " + file.Name;
-                                        }
+                                        tag.Genres = [newData.Item1.Genre];
+                                        changed = true;
                                     }
+
+                                    if (changed)
+                                        tagFile.Save();
                                 }
-                                else if (newData.Item2 == true)
-                                    break;
-                                else
-                                    errorList += Environment.NewLine + file.Name;
                             }
-                            finally
-                            {
-                                propertyWriter.Close();
-                            }
+                            else if (newData.Item2 == true)
+                                break;
+                            else
+                                errorList += Environment.NewLine + file.Name;
                         }
                     }
                     progressBar1.Value = Convert.ToInt32(100 * (i + 1) / files.Length);
@@ -780,36 +621,32 @@ namespace MusicApp
 
                 for (int i = 0; i < files.Length; i++)
                 {
-
                     FileInfo file = new FileInfo(files[i]);
-                    var strFileName = file.DirectoryName + "\\" + file.Name;
-
-                    ShellObject song = ShellObject.FromParsingName(strFileName);
-                    string artist = GetValue(song.Properties.GetProperty(SystemProperties.System.Music.AlbumArtist));
-                    string title = GetValue(song.Properties.GetProperty(SystemProperties.System.Title));
-                    string lyrics = TagLib.File.Create(strFileName).Tag?.Lyrics ?? GetValue(song.Properties.GetProperty(SystemProperties.System.Music.Lyrics));
+                    string artist;
+                    string title;
+                    string lyrics;
+                    using (TagLib.File tagFile = TagLib.File.Create(file.FullName))
+                    {
+                        TagLib.Tag tag = tagFile.Tag;
+                        artist = tag.AlbumArtists?.FirstOrDefault() ?? tag.FirstAlbumArtist ?? string.Empty;
+                        title = tag.Title ?? string.Empty;
+                        lyrics = tag.Lyrics ?? string.Empty;
+                    }
 
                     if (artist != "" && title != "" && (lyrics == "" || lyrics.Contains(".com") || lyrics.Contains("www.") || lyrics.Contains("http")))
                     {
-                        var fileshell = ShellFile.FromFilePath(strFileName);
-                        ShellPropertyWriter propertyWriter = fileshell.Properties.GetPropertyWriter();
+                        var lyricsValues = await Lyrics.GetLyricsAsync(artist, title);
 
-                        try
+                        if (lyricsValues.Item1 != null && lyricsValues.Item1 != "")
                         {
-                            var lyricsValues = await Lyrics.GetLyricsAsync(artist, title);
-
-                            if (lyricsValues.Item1 != null && lyricsValues.Item1 != "")
-                                propertyWriter.WriteProperty(SystemProperties.System.Music.Lyrics, new string[] { lyricsValues.Item1 });
-                            else if (lyricsValues.Item2 == true)
-                                break;
-                            else
-                                errorList += Environment.NewLine + file.Name;
+                            using TagLib.File tagFile = TagLib.File.Create(file.FullName);
+                            tagFile.Tag.Lyrics = lyricsValues.Item1;
+                            tagFile.Save();
                         }
-                        finally
-                        {
-                            propertyWriter.Close();
-                        }
-
+                        else if (lyricsValues.Item2 == true)
+                            break;
+                        else
+                            errorList += Environment.NewLine + file.Name;
                     }
                     progressBar1.Value = Convert.ToInt32(100 * (i + 1) / files.Length);
 

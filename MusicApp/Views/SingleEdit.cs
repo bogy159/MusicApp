@@ -1,6 +1,4 @@
-﻿using Microsoft.WindowsAPICodePack.Shell;
-using Microsoft.WindowsAPICodePack.Shell.PropertySystem;
-using MusicApp.Helpers;
+﻿using MusicApp.Helpers;
 using MusicApp.Services;
 using System.Text.RegularExpressions;
 
@@ -22,87 +20,64 @@ namespace MusicApp
         {
             try
             {
-                ShellObject song = ShellObject.FromParsingName(location);
-                // no-op to ensure file is modified/saved after edits
-                nameTextBox.Text = Index.GetValue(song.Properties.GetProperty(SystemProperties.System.FileName));
-                aArtistTextBox.Text = Index.GetValue(song.Properties.GetProperty(SystemProperties.System.Music.AlbumArtist));
-                titleTextBox.Text = Index.GetValue(song.Properties.GetProperty(SystemProperties.System.Title));
-                albumTextBox.Text = Index.GetValue(song.Properties.GetProperty(SystemProperties.System.Music.AlbumTitle));
-                yearTextBox.Text = Index.GetValue(song.Properties.GetProperty(SystemProperties.System.Media.Year));
-                lyricsTextBox.Text = TagLib.File.Create(location).Tag?.Lyrics ?? Index.GetValue(song.Properties.GetProperty(SystemProperties.System.Music.Lyrics));
-                
-                // Use WindowsAPICodePack ShellObject for properties where possible
-                try
+                using (TagLib.File tagFile = TagLib.File.Create(location))
                 {
-                    var shellObj = ShellObject.FromParsingName(location);
-                    // Fall back to Shell32 compatibility wrapper for details not exposed by ShellObject
-                    Shell shell = new Shell();
-                    Folder objFolder = shell.NameSpace(Path.GetDirectoryName(location));
-                    var folderItem = objFolder?.ParseName(Path.GetFileName(location));
-                    contributingTextBox.Text = objFolder?.GetDetailsOf(folderItem, 13) ?? string.Empty;
-                    genreBox.Text = objFolder?.GetDetailsOf(folderItem, 16) ?? string.Empty;
-                }
-                catch
-                {
-                    // Fallback: attempt COM wrapper directly
-                    Shell shell = new Shell();
-                    Folder objFolder = shell.NameSpace(Path.GetDirectoryName(location));
-                    FolderItem folderItem = objFolder.ParseName(Path.GetFileName(location));
-                    contributingTextBox.Text = objFolder.GetDetailsOf(folderItem, 13);
-                    genreBox.Text = objFolder.GetDetailsOf(folderItem, 16);
+                    TagLib.Tag tag = tagFile.Tag;
+                    nameTextBox.Text = Path.GetFileName(location);
+                    aArtistTextBox.Text = tag.AlbumArtists?.FirstOrDefault() ?? tag.FirstAlbumArtist ?? string.Empty;
+                    contributingTextBox.Text = tag.Performers?.FirstOrDefault() ?? string.Empty;
+                    titleTextBox.Text = tag.Title ?? string.Empty;
+                    albumTextBox.Text = tag.Album ?? string.Empty;
+                    yearTextBox.Text = tag.Year > 0 ? tag.Year.ToString() : string.Empty;
+                    genreBox.Text = tag.FirstGenre ?? string.Empty;
+                    lyricsTextBox.Text = tag.Lyrics ?? string.Empty;
                 }
             }
-            catch (ShellException)
+            catch (Exception ex)
             {
-                MessageBox.Show("File not found exception!", "Error");
-                Close();
-            }
-            catch (Exception e)
-            {
-                MessageBox.Show(e.ToString(), "Error");
+                MessageBox.Show(ex.ToString(), "Error");
                 Close();
             }
         }
 
         public void SetData(string location)
-        {            
-            var fileshell = ShellFile.FromFilePath(location);
-            ShellPropertyWriter propertyWriter = fileshell.Properties.GetPropertyWriter();
+        {
             try
             {
-
-                if (yearTextBox.Text != "" && Validators.IsValidYear(yearTextBox.Text))
-                    propertyWriter.WriteProperty(SystemProperties.System.Media.Year, new int[] { Convert.ToInt16(yearTextBox.Text) });
-                else if (yearTextBox.Text == "" || Convert.ToInt16(yearTextBox.Text) == 0)
-                    propertyWriter.WriteProperty(SystemProperties.System.Media.Year, new int[] { 0 });
-                else
+                using (TagLib.File tagFile = TagLib.File.Create(location))
                 {
-                    DialogResult dialogResult = MessageBox.Show("Invalid year!" + Environment.NewLine + "Do you want to continue with the year change?", "Inpropper year!", MessageBoxButtons.YesNoCancel);
+                    TagLib.Tag tag = tagFile.Tag;
+                    bool hasYear = uint.TryParse(yearTextBox.Text, out uint year);
 
-                    if (dialogResult == DialogResult.Yes)
-                        propertyWriter.WriteProperty(SystemProperties.System.Media.Year, new int[] { Convert.ToInt16(yearTextBox.Text) });
-                    else if (dialogResult == DialogResult.No)
+                    if (yearTextBox.Text == "")
+                        tag.Year = 0;
+                    else if (hasYear && Validators.IsValidYear(yearTextBox.Text))
+                        tag.Year = year;
+                    else
                     {
+                        DialogResult dialogResult = MessageBox.Show("Invalid year!" + Environment.NewLine + "Do you want to continue with the year change?", "Inpropper year!", MessageBoxButtons.YesNoCancel);
+
+                        if (dialogResult == DialogResult.Yes)
+                        {
+                            if (hasYear)
+                                tag.Year = year;
+                        }
+                        else if (dialogResult == DialogResult.Cancel)
+                            return;
                     }
-                    else if (dialogResult == DialogResult.Cancel)
-                        return;
+
+                    tag.AlbumArtists = [aArtistTextBox.Text];
+                    tag.Title = titleTextBox.Text;
+                    tag.Album = albumTextBox.Text;
+                    tag.Performers = [contributingTextBox.Text];
+                    tag.Genres = [genreBox.Text];
+                    tag.Lyrics = lyricsTextBox.Text;
+                    tagFile.Save();
                 }
-
-                propertyWriter.WriteProperty(SystemProperties.System.Music.AlbumArtist, new string[] { aArtistTextBox.Text });
-                propertyWriter.WriteProperty(SystemProperties.System.Title, new string[] { titleTextBox.Text });
-                propertyWriter.WriteProperty(SystemProperties.System.Music.AlbumTitle, new string[] { albumTextBox.Text });
-                propertyWriter.WriteProperty(SystemProperties.System.Music.Artist, new string[] { contributingTextBox.Text });
-                propertyWriter.WriteProperty(SystemProperties.System.Music.Genre, new string[] { genreBox.Text });
-                propertyWriter.WriteProperty(SystemProperties.System.Music.Lyrics, new string[] { lyricsTextBox.Text });
-
             }
             catch (Exception e)
             {
                 MessageBox.Show("Error: " + e, "Setting data error!");
-            }
-            finally
-            {
-                propertyWriter.Close();
             }
             try
             {
