@@ -87,7 +87,7 @@
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>j1kBjistYrAAg8G49QUlQfdUkNzJfK9/23Oy+gEWRbg=</dsig:DigestValue>
+      <dsig:DigestValue>byA3uYKvDCc1+JtWaCgUVYKCv/5VED/h9MyggCTQAkQ=</dsig:DigestValue>
     </hash>
   </file>
   <file name="MusicApp.dll.config" size="240">
@@ -105,7 +105,7 @@
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>5v1bmX3Eue5VFM+OPPpL6SIzoPXwgE3QCWLuJW2sh1g=</dsig:DigestValue>
+      <dsig:DigestValue>SH5teKPIkZdyioLO3Mgb3XLYVNCpOpiiTmG1/sDVIyA=</dsig:DigestValue>
     </hash>
   </file>
   <file name="TagLibSharp.dll" size="500224">
