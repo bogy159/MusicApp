@@ -1,3 +1,4 @@
 .vs/
 **/bin/
 **/obj/
+/MusicApp/obj/Debug/net10.0-windows/MusicApp.dll.manifest
