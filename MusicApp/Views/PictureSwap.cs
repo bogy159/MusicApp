@@ -7,6 +7,8 @@ namespace MusicApp.Views
         private TagLib.Tag _tag = null;
         public Image SelectedImage { get; private set; }
 
+        private int apiUsed = 0;
+
         private TableLayoutPanel pictureLayoutPanel;
         private PictureBox currentPictureBox;
         private PictureBox newPictureBox;
@@ -155,7 +157,7 @@ namespace MusicApp.Views
             OKButton.Enabled = false;
             getPictureButton.Enabled = false;
             cancelButton.Enabled = false;
-            var newPicture = await Pictures.GetPicture(_tag.AlbumArtists?.FirstOrDefault(), _tag.Title);
+            var newPicture = await Pictures.GetPicture(_tag.AlbumArtists?.FirstOrDefault(), _tag.Title, apiUsed);
 
             if (newPicture.Item1 == null)
                 MessageBox.Show("Picture of the song was not found.", "No Results.");
@@ -163,9 +165,11 @@ namespace MusicApp.Views
             {
                 newPictureBox.Image = newPicture.Item1;
                 swapButton.Enabled = true;
+                apiUsed++;
             }
             OKButton.Enabled = true;
             getPictureButton.Enabled = true;
+            getPictureButton.Text = $"Get ({apiUsed})";
             cancelButton.Enabled = true;
         }
 

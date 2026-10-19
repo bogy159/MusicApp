@@ -3,6 +3,8 @@ using MusicApp.Services;
 using System.ComponentModel;
 using System.Data;
 using System.Text.RegularExpressions;
+using static System.Net.Mime.MediaTypeNames;
+using Application = System.Windows.Forms.Application;
 
 namespace MusicApp
 {
@@ -73,8 +75,8 @@ namespace MusicApp
             DataTable dtOutput = whole.DefaultView.ToTable();
 
             return dtOutput;
-        }        
-             
+        }
+
         private void Bw_DoWork(object sender, DoWorkEventArgs e)
         {
             BackgroundWorker worker = (BackgroundWorker)sender;
@@ -155,7 +157,7 @@ namespace MusicApp
                             {
                                 string[] newest = Regex.Split(newName[1], "\\.");
                                 row["Needed Changes in Title"] = newest[0];
-                            }  
+                            }
                         }
 
                         table.Rows.Add(row);
@@ -195,6 +197,7 @@ namespace MusicApp
                 changeTitleToolStripMenuItem.Enabled = false;
                 updateEnrichmentToolStripMenuItem.Enabled = false;
                 lyricsUpdateToolStripMenuItem.Enabled = false;
+                picturesUpdateToolStripMenuItem.Enabled = false;
             }
             else if (!(e.Error == null))
             {
@@ -219,6 +222,7 @@ namespace MusicApp
                 changeTitleToolStripMenuItem.Enabled = true;
                 updateEnrichmentToolStripMenuItem.Enabled = true;
                 lyricsUpdateToolStripMenuItem.Enabled = true;
+                picturesUpdateToolStripMenuItem.Enabled = true;
                 CurrentPageIndex = 1;
                 pageTextBox.Text = CurrentPageIndex.ToString() + "/" + CalculateTotalPages().ToString();
                 itemsNumTextBox.Text = PgSize.ToString();
@@ -241,6 +245,7 @@ namespace MusicApp
             changeTitleToolStripMenuItem.Enabled = false;
             updateEnrichmentToolStripMenuItem.Enabled = false;
             lyricsUpdateToolStripMenuItem.Enabled = false;
+            picturesUpdateToolStripMenuItem.Enabled = false;
             searchButton.Enabled = false;
             CancelButton2.Enabled = false;
             lastButton.Enabled = false;
@@ -538,7 +543,7 @@ namespace MusicApp
 
         private void StatsButton_Click(object sender, EventArgs e)
         {
-            Stats statsForm = new Stats();
+            Stats statsForm = new();
             statsForm.ShowDialog();
         }
 
@@ -730,6 +735,56 @@ namespace MusicApp
                 MessageBox.Show(ex.ToString(), "Error!");
                 path = "";
                 return false;
+            }
+        }
+
+        private async void PicturesUpdateToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                string[] files = Directory.GetFiles(path, "*.mp3", SearchOption.AllDirectories);
+                errorList = "No pictures for the following: ";
+
+                for (int i = 0; i < files.Length; i++)
+                {
+                    FileInfo file = new(files[i]);
+                    string artist;
+                    string title;
+                    TagLib.IPicture picture;
+                    using (TagLib.File tagFile = TagLib.File.Create(file.FullName))
+                    {
+                        TagLib.Tag tag = tagFile.Tag;
+                        artist = tag.AlbumArtists?.FirstOrDefault() ?? tag.FirstAlbumArtist ?? string.Empty;
+                        title = tag.Title ?? string.Empty;
+                        picture = tag.Pictures?.FirstOrDefault() ?? null;
+                    }
+
+                    if (!Validators.IsValidPicture(picture))
+                    {
+                        var pictureValues = await Pictures.GetPicture(artist, title);
+
+                        if (pictureValues.Item1 != null)
+                        {
+                            using TagLib.File tagFile = TagLib.File.Create(file.FullName);
+                            tagFile.Tag.Pictures = [Pictures.ToTagPicture(pictureValues.Item1)];
+                            tagFile.Save();
+                        }
+                        else if (pictureValues.Item2 == true)
+                            break;
+                        else
+                            errorList += Environment.NewLine + file.Name;
+                    }
+                    progressBar1.Value = Convert.ToInt32(100 * (i + 1) / files.Length);
+
+                    if (i == files.Length - 1)
+                        progressBar1.Value = 100;
+                }
+                ErrorList errorForm = new ErrorList(errorList);
+                errorForm.ShowDialog();
+            }
+            catch (FileNotFoundException ex)
+            {
+                MessageBox.Show("Files not found exception!", ex.Message);
             }
         }
 

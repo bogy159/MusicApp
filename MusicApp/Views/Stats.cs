@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Linq;
-using System.Windows.Forms;
+﻿using System.Data;
 
 namespace MusicApp
 {
@@ -36,9 +32,7 @@ namespace MusicApp
                     stats.Rows.Add(row);
                 }
                 else if (collection[i] == collection[i - 1])
-                {
-                    j++;                    
-                }
+                    j++;
 
                 if (i == collection.Count - 1)
                 {
@@ -50,15 +44,14 @@ namespace MusicApp
                 progressBar2.Value = Convert.ToInt32(100 * (i + 1) / collection.Count);
 
                 if (i == collection.Count - 1)
-                {
                     progressBar2.Value = 100;
-                }
             }
             return stats;
         }
 
         private List<string> Filtering(string column)
         {
+
             List<string> collection = Index.tableFin.AsEnumerable().Select(r => r.Field<string>(column)).ToList();
 
             if (column == "Contribution Artist")
@@ -163,6 +156,7 @@ namespace MusicApp
                     "Years" => "Year",
                     "Decades" => "Year",
                     "Have Lyrics" => "Has Lyrics",
+                    "Have Pictures" => "Has Picture",
                     "Average Durations" => "Length",
                     "ID Numbers" => "File Name",
                     "Locations" => "File Path",

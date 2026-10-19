@@ -109,6 +109,7 @@
             "Decades",
             "Average Durations",
             "Have Lyrics",
+            "Have Pictures",
             "ID Numbers",
             "Locations"});
             this.comboBox1.Location = new System.Drawing.Point(105, 38);

@@ -1,5 +1,5 @@
-﻿using System.Text.Json;
-using System.Drawing.Drawing2D;
+﻿using System.Drawing.Drawing2D;
+using System.Text.Json;
 
 namespace MusicApp.Services
 {
@@ -7,20 +7,35 @@ namespace MusicApp.Services
     {
         private const int MaxMetadataDimension = 500;
 
-        private static Bitmap ResizeForMetadata(Image image)
+        public static async Task<(Image?, bool)> GetPicture(string artist, string song, int apiUsed = 0)
         {
-            var scale = Math.Min(1f, (float)MaxMetadataDimension / Math.Max(image.Width, image.Height));
-            var width = Math.Max(1, (int)Math.Round(image.Width * scale));
-            var height = Math.Max(1, (int)Math.Round(image.Height * scale));
-            var resizedImage = new Bitmap(width, height, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
-            using var graphics = Graphics.FromImage(resizedImage);
-            graphics.Clear(Color.White);
-            graphics.CompositingQuality = CompositingQuality.HighQuality;
-            graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
-            graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
-            graphics.DrawImage(image, 0, 0, width, height);
+            var providers = new Func<Task<Image?>>[]
+            {
+                () => ITunesGet(artist, song),
+                () => DeezerGet(artist, song),
+                () => TheAudioDBGet(artist, song),
+            };
+            var firstProvider = ((apiUsed % providers.Length) + providers.Length) % providers.Length;
 
-            return resizedImage;
+            for (var offset = 0; offset < providers.Length; offset++)
+            {
+                var picture = await providers[(firstProvider + offset) % providers.Length]();
+                if (picture != null)
+                    return (picture, false);
+            }
+
+            DialogResult dialogResult = MessageBox.Show("Error: " + Environment.NewLine + "When searching: " + artist + " - " + song, "Exception!", MessageBoxButtons.AbortRetryIgnore);
+            if (dialogResult == DialogResult.Abort)
+                return (null, true);
+            else if (dialogResult == DialogResult.Retry)
+            {
+                Thread.Sleep(2000);
+                return await GetPicture(artist, song, apiUsed);
+            }
+            else if (dialogResult == DialogResult.Ignore)
+                return (null, false);
+            else
+                return (null, true);
         }
 
         public static TagLib.Picture ToTagPicture(Image image)
@@ -42,35 +57,8 @@ namespace MusicApp.Services
             };
         }
 
-        public static async Task<(Image?, bool)> GetPicture(string artist, string song)
+        private static async Task<Image?> ITunesGet(string artist, string song)
         {
-            var iTunes = await ITunesGet(artist, song);
-            if (iTunes != null)
-                return (iTunes, false);
-
-            var musicBrainz = await MusicBrainzGet(artist, song);
-            if (musicBrainz != null)
-                return (musicBrainz, false);
-
-            DialogResult dialogResult = MessageBox.Show("Error: " + Environment.NewLine + "When searching: " + artist + " - " + song, "Exception!", MessageBoxButtons.AbortRetryIgnore);
-            if (dialogResult == DialogResult.Abort)
-                return (null, true);
-            else if (dialogResult == DialogResult.Retry)
-            {
-                Thread.Sleep(2000);
-                return await GetPicture(artist, song);
-            }
-            else if (dialogResult == DialogResult.Ignore)
-                return (null, false);
-            else
-                return (null, true);
-        }
-
-        public static async Task<Image?> ITunesGet(string artist, string song)
-        {
-            if (string.IsNullOrWhiteSpace(artist) || string.IsNullOrWhiteSpace(song))
-                return null;
-
             try
             {
                 var query = Uri.EscapeDataString($"{artist} {song}");
@@ -129,101 +117,174 @@ namespace MusicApp.Services
             }
         }
 
-        public static async Task<Image?> MusicBrainzGet(string artist, string song)
+        private static async Task<Image?> DeezerGet(string artist, string song)
         {
             try
             {
-                static string EscapeQueryValue(string value) => value.Replace("\\", "\\\\").Replace("\"", "\\\"");
                 static string Normalize(string? value) => string.Join(" ", (value ?? string.Empty)
                     .Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries)).ToLowerInvariant();
-
-                var query = Uri.EscapeDataString($"recording:\"{EscapeQueryValue(song)}\" AND artist:\"{EscapeQueryValue(artist)}\"");
-                var searchUrl = $"https://musicbrainz.org/ws/2/recording/?query={query}&fmt=json&limit=10";
-
-                using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(15) };
-                http.DefaultRequestHeaders.UserAgent.ParseAdd("MusicApp/3.0 (https://github.com/bogy159/MusicApp)");
-
-                using var searchResponse = await http.GetAsync(searchUrl).ConfigureAwait(false);
-                if (!searchResponse.IsSuccessStatusCode)
-                    return null;
-
-                using var searchDocument = JsonDocument.Parse(await searchResponse.Content.ReadAsStringAsync().ConfigureAwait(false));
-                if (!searchDocument.RootElement.TryGetProperty("recordings", out var recordings) ||
-                    recordings.ValueKind != JsonValueKind.Array)
-                    return null;
 
                 static string ReadString(JsonElement element, string propertyName) =>
                     element.TryGetProperty(propertyName, out var value) && value.ValueKind == JsonValueKind.String
                         ? value.GetString() ?? string.Empty
                         : string.Empty;
 
-                static string GetArtistCredit(JsonElement recording)
-                {
-                    if (!recording.TryGetProperty("artist-credit", out var credits) || credits.ValueKind != JsonValueKind.Array)
-                        return string.Empty;
+                using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(10) };
+                var query = Uri.EscapeDataString($"{artist} {song}");
+                var searchUrl = $"https://api.deezer.com/search?q={query}&limit=10";
 
-                    return string.Join(" ", credits.EnumerateArray()
-                        .Where(credit => credit.TryGetProperty("artist", out _))
-                        .Select(credit => credit.GetProperty("artist"))
-                        .Where(creditedArtist => creditedArtist.TryGetProperty("name", out _))
-                        .Select(creditedArtist => creditedArtist.GetProperty("name").GetString() ?? string.Empty));
-                }
+                using var searchResponse = await http.GetAsync(searchUrl).ConfigureAwait(false);
+                if (!searchResponse.IsSuccessStatusCode)
+                    return null;
+
+                using var searchDocument = JsonDocument.Parse(await searchResponse.Content.ReadAsStringAsync().ConfigureAwait(false));
+                if (!searchDocument.RootElement.TryGetProperty("data", out var tracks) ||
+                    tracks.ValueKind != JsonValueKind.Array)
+                    return null;
 
                 var normalizedArtist = Normalize(artist);
                 var normalizedSong = Normalize(song);
-                var chosenRecording = recordings.EnumerateArray().FirstOrDefault(recording =>
-                    Normalize(ReadString(recording, "title")) == normalizedSong &&
-                    Normalize(GetArtistCredit(recording)) == normalizedArtist);
 
-                if (chosenRecording.ValueKind == JsonValueKind.Undefined)
+                bool Matches(JsonElement track, bool allowPartialMatch)
                 {
-                    chosenRecording = recordings.EnumerateArray().FirstOrDefault(recording =>
-                        Normalize(ReadString(recording, "title")).Contains(normalizedSong, StringComparison.Ordinal) &&
-                        Normalize(GetArtistCredit(recording)).Contains(normalizedArtist, StringComparison.Ordinal));
+                    if (!track.TryGetProperty("artist", out var trackArtist) || trackArtist.ValueKind != JsonValueKind.Object ||
+                        !track.TryGetProperty("album", out var album) || album.ValueKind != JsonValueKind.Object)
+                        return false;
+
+                    var candidateArtist = Normalize(ReadString(trackArtist, "name"));
+                    var candidateSong = Normalize(ReadString(track, "title"));
+                    if (candidateArtist.Length == 0 || candidateSong.Length == 0)
+                        return false;
+
+                    return allowPartialMatch
+                        ? candidateArtist.Contains(normalizedArtist, StringComparison.Ordinal) &&
+                          candidateSong.Contains(normalizedSong, StringComparison.Ordinal)
+                        : candidateArtist == normalizedArtist && candidateSong == normalizedSong;
                 }
 
-                var recordingId = ReadString(chosenRecording, "id");
-                if (string.IsNullOrWhiteSpace(recordingId))
+                var chosen = tracks.EnumerateArray().FirstOrDefault(track => Matches(track, allowPartialMatch: false));
+                if (chosen.ValueKind == JsonValueKind.Undefined)
+                    chosen = tracks.EnumerateArray().FirstOrDefault(track => Matches(track, allowPartialMatch: true));
+                if (chosen.ValueKind != JsonValueKind.Object ||
+                    !chosen.TryGetProperty("album", out var chosenAlbum) || chosenAlbum.ValueKind != JsonValueKind.Object)
                     return null;
 
-                await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
+                var coverUrl = new[] { "cover_xl", "cover_big", "cover_medium", "cover" }
+                    .Select(propertyName => ReadString(chosenAlbum, propertyName))
+                    .FirstOrDefault(value => Uri.TryCreate(value, UriKind.Absolute, out var uri) &&
+                        (uri.Scheme == Uri.UriSchemeHttps || uri.Scheme == Uri.UriSchemeHttp));
 
-                var detailUrl = $"https://musicbrainz.org/ws/2/recording/{Uri.EscapeDataString(recordingId)}?inc=releases&fmt=json";
-                using var detailResponse = await http.GetAsync(detailUrl).ConfigureAwait(false);
-                if (!detailResponse.IsSuccessStatusCode)
+                if (string.IsNullOrWhiteSpace(coverUrl))
                     return null;
 
-                using var detailDocument = JsonDocument.Parse(await detailResponse.Content.ReadAsStringAsync().ConfigureAwait(false));
-                if (!detailDocument.RootElement.TryGetProperty("releases", out var releases) ||
-                    releases.ValueKind != JsonValueKind.Array)
+                using var imageResponse = await http.GetAsync(coverUrl).ConfigureAwait(false);
+                if (!imageResponse.IsSuccessStatusCode)
                     return null;
 
-                var releaseCandidates = releases.EnumerateArray()
-                    .Where(release => !string.IsNullOrWhiteSpace(ReadString(release, "id")))
-                    .OrderByDescending(release => release.TryGetProperty("release-group", out var group) && ReadString(group, "primary-type") == "Album")
-                    .ThenBy(release => ReadString(release, "date") is { Length: > 0 } date ? date : "9999")
-                    .Take(5);
-
-                foreach (var release in releaseCandidates)
-                {
-                    var releaseId = ReadString(release, "id");
-                    var coverUrl = $"https://coverartarchive.org/release/{Uri.EscapeDataString(releaseId)}/front-500";
-                    using var coverResponse = await http.GetAsync(coverUrl).ConfigureAwait(false);
-                    if (!coverResponse.IsSuccessStatusCode)
-                        continue;
-
-                    var imageBytes = await coverResponse.Content.ReadAsByteArrayAsync().ConfigureAwait(false);
-                    using var imageStream = new MemoryStream(imageBytes);
-                    using var decodedImage = Image.FromStream(imageStream);
-                    return new Bitmap(decodedImage);
-                }
-
-                return null;
+                var imageBytes = await imageResponse.Content.ReadAsByteArrayAsync().ConfigureAwait(false);
+                using var imageStream = new MemoryStream(imageBytes);
+                using var decodedImage = Image.FromStream(imageStream);
+                return new Bitmap(decodedImage);
             }
             catch (Exception)
             {
                 return null;
             }
+        }
+
+        private static async Task<Image?> TheAudioDBGet(string artist, string song)
+        {
+            try
+            {
+                static string Normalize(string? value) => string.Join(" ", (value ?? string.Empty)
+                    .Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries)).ToLowerInvariant();
+
+                static string ReadString(JsonElement element, string propertyName) =>
+                    element.TryGetProperty(propertyName, out var value) && value.ValueKind == JsonValueKind.String
+                        ? value.GetString() ?? string.Empty
+                        : string.Empty;
+
+                var apiKey = Program.AudioDbApiKey;
+                if (string.IsNullOrWhiteSpace(apiKey))
+                    return null;
+
+                var searchUrl = $"https://www.theaudiodb.com/api/v1/json/{Uri.EscapeDataString(apiKey)}/searchtrack.php?s={Uri.EscapeDataString(artist)}&t={Uri.EscapeDataString(song)}";
+                using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(10) };
+                using var response = await http.GetAsync(searchUrl).ConfigureAwait(false);
+                if (!response.IsSuccessStatusCode)
+                    return null;
+
+                var jsonString = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                using var document = JsonDocument.Parse(jsonString);
+                if (!document.RootElement.TryGetProperty("track", out var tracks) || tracks.ValueKind != JsonValueKind.Array)
+                    return null;
+
+                var normalizedArtist = Normalize(artist);
+                var normalizedSong = Normalize(song);
+
+                bool Matches(JsonElement track, bool allowPartialMatch)
+                {
+                    var candidateArtist = Normalize(ReadString(track, "strArtist"));
+                    var candidateSong = Normalize(ReadString(track, "strTrack"));
+                    if (candidateArtist.Length == 0 || candidateSong.Length == 0)
+                        return false;
+
+                    return allowPartialMatch
+                        ? candidateArtist.Contains(normalizedArtist, StringComparison.Ordinal) &&
+                          candidateSong.Contains(normalizedSong, StringComparison.Ordinal)
+                        : candidateArtist == normalizedArtist && candidateSong == normalizedSong;
+                }
+
+                var chosen = tracks.EnumerateArray().FirstOrDefault(track => Matches(track, allowPartialMatch: false));
+                if (chosen.ValueKind == JsonValueKind.Undefined)
+                    chosen = tracks.EnumerateArray().FirstOrDefault(track => Matches(track, allowPartialMatch: true));
+
+                // Fallback: If no strict/partial artist+song match worked, take the first track if the array isn't empty
+                if (chosen.ValueKind == JsonValueKind.Undefined)
+                    chosen = tracks.EnumerateArray().FirstOrDefault();
+
+                if (chosen.ValueKind != JsonValueKind.Object)
+                    return null;
+
+                // Expanded property list to check track-specific and album-specific artwork keys
+                var coverUrl = new[] { "strTrackThumb", "strAlbumThumbHQ", "strAlbumThumb", "strTrackBitmap" }
+                    .Select(propertyName => ReadString(chosen, propertyName))
+                    .FirstOrDefault(value => Uri.TryCreate(value, UriKind.Absolute, out var uri) &&
+                        (uri.Scheme == Uri.UriSchemeHttps || uri.Scheme == Uri.UriSchemeHttp));
+
+                if (string.IsNullOrWhiteSpace(coverUrl))
+                    return null;
+
+                using var imageResponse = await http.GetAsync(coverUrl).ConfigureAwait(false);
+                if (!imageResponse.IsSuccessStatusCode)
+                    return null;
+
+                var imageBytes = await imageResponse.Content.ReadAsByteArrayAsync().ConfigureAwait(false);
+                using var imageStream = new MemoryStream(imageBytes);
+                using var decodedImage = Image.FromStream(imageStream);
+                return new Bitmap(decodedImage);
+            }
+            catch (Exception ex)
+            {
+                // Optional: Console.WriteLine(ex); to catch potential Image.FromStream platform exceptions (like missing GDI+ on non-Windows environments)
+                return null;
+            }
+        }
+
+        private static Bitmap ResizeForMetadata(Image image)
+        {
+            var scale = Math.Min(1f, (float)MaxMetadataDimension / Math.Max(image.Width, image.Height));
+            var width = Math.Max(1, (int)Math.Round(image.Width * scale));
+            var height = Math.Max(1, (int)Math.Round(image.Height * scale));
+            var resizedImage = new Bitmap(width, height, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
+            using var graphics = Graphics.FromImage(resizedImage);
+            graphics.Clear(Color.White);
+            graphics.CompositingQuality = CompositingQuality.HighQuality;
+            graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
+            graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
+            graphics.DrawImage(image, 0, 0, width, height);
+
+            return resizedImage;
         }
     }
 }
