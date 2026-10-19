@@ -3,15 +3,14 @@ using MusicApp.Services;
 using System.ComponentModel;
 using System.Data;
 using System.Text.RegularExpressions;
-using static System.Net.Mime.MediaTypeNames;
 using Application = System.Windows.Forms.Application;
 
 namespace MusicApp
 {
     public partial class Index : Form
     {
-        public string path;
         public static DataTable tableFin;
+        private string path;
         private int PgSize = 10;
         private int CurrentPageIndex = 1;
         private string errorList;
