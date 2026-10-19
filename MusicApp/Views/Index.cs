@@ -95,6 +95,7 @@ namespace MusicApp
                 table.Columns.Add("Length");
                 table.Columns.Add("Bit Rate");
                 table.Columns.Add("Size in MB", typeof(double));
+                table.Columns.Add("Has Picture");
                 table.Columns.Add("File Path");
                 table.Columns.Add("Has Lyrics");
 
@@ -129,6 +130,7 @@ namespace MusicApp
                         row["Size in MB"] = file.Length / (1024d * 1024d);
                         string falseName = Validators.NameCheck(filename);
                         row["Fix Name"] = falseName;
+                        row["Has Picture"] = Validators.IsValidPicture(tag.Pictures?.FirstOrDefault()) ? "Yes" : "No";
                         row["File Path"] = file.FullName;
                         row["Has Lyrics"] = string.IsNullOrEmpty(lyrics) ? "No" : "Yes";
 
@@ -262,34 +264,32 @@ namespace MusicApp
 
         private void OpenToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            using (var fbd = new FolderBrowserDialog())
+            using var fbd = new FolderBrowserDialog();
+            fbd.SelectedPath = path;
+            DialogResult result = fbd.ShowDialog();
+
+            if (result == DialogResult.OK && !string.IsNullOrWhiteSpace(fbd.SelectedPath))
             {
-                fbd.SelectedPath = path;
-                DialogResult result = fbd.ShowDialog();
+                string[] files = Directory.GetFiles(fbd.SelectedPath, "*.mp3", SearchOption.AllDirectories);
 
-                if (result == DialogResult.OK && !string.IsNullOrWhiteSpace(fbd.SelectedPath))
+                DialogResult dialogResult = MessageBox.Show("Files found: " + files.Length.ToString() + Environment.NewLine + "This Process can be slow once started. Do you want to continue?", "Countinue?", MessageBoxButtons.YesNo);
+
+                if (dialogResult == DialogResult.Yes)
                 {
-                    string[] files = Directory.GetFiles(fbd.SelectedPath, "*.mp3", SearchOption.AllDirectories);
-
-                    DialogResult dialogResult = MessageBox.Show("Files found: " + files.Length.ToString() + Environment.NewLine + "This Process can be slow once started. Do you want to continue?", "Countinue?", MessageBoxButtons.YesNo);
-
-                    if (dialogResult == DialogResult.Yes)
+                    tableFin = null;
+                    DisableButtons();
+                    if (files.Length != 0)
                     {
-                        tableFin = null;
-                        DisableButtons();
-                        if (files.Length != 0)
+                        path = fbd.SelectedPath;
+                        if (backgroundWorker1.IsBusy != true)
                         {
-                            path = fbd.SelectedPath;
-                            if (backgroundWorker1.IsBusy != true)
-                            {
-                                CancelButton2.Enabled = true;
-                                backgroundWorker1.RunWorkerAsync();
-                            }
+                            CancelButton2.Enabled = true;
+                            backgroundWorker1.RunWorkerAsync();
                         }
                     }
-                    else if (dialogResult == DialogResult.No)
-                    {
-                    }
+                }
+                else if (dialogResult == DialogResult.No)
+                {
                 }
             }
         }
@@ -673,24 +673,22 @@ namespace MusicApp
 
         private void OpenExtendedToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            using (var fbd = new FolderBrowserDialog())
+            using var fbd = new FolderBrowserDialog();
+            fbd.SelectedPath = path;
+            DialogResult result = fbd.ShowDialog();
+
+            if (result == DialogResult.OK && !string.IsNullOrWhiteSpace(fbd.SelectedPath))
             {
-                fbd.SelectedPath = path;
-                DialogResult result = fbd.ShowDialog();
+                tableFin = null;
+                DisableButtons();
+                string[] files = Directory.GetFiles(fbd.SelectedPath, "*.mp3", SearchOption.AllDirectories);
+                MessageBox.Show("Files found: " + files.Length.ToString(), "Message");
 
-                if (result == DialogResult.OK && !string.IsNullOrWhiteSpace(fbd.SelectedPath))
+                if (files.Length != 0)
                 {
-                    tableFin = null;
-                    DisableButtons();
-                    string[] files = Directory.GetFiles(fbd.SelectedPath, "*.mp3", SearchOption.AllDirectories);
-                    MessageBox.Show("Files found: " + files.Length.ToString(), "Message");
-
-                    if (files.Length != 0)
-                    {
-                        path = fbd.SelectedPath;
-                        if (GetAllFiles() == true)
-                            SuccessfulDataGridLoad();
-                    }
+                    path = fbd.SelectedPath;
+                    if (GetAllFiles() == true)
+                        SuccessfulDataGridLoad();
                 }
             }
         }

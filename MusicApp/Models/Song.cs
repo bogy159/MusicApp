@@ -14,5 +14,6 @@
         public string Size { get; set; }
         public string BitRate { get; set; }
         public string Lyrics { get; set; }
+        public string Picture { get; set; }
     }
 }

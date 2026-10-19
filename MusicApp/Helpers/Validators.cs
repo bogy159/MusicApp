@@ -93,5 +93,10 @@ namespace MusicApp.Helpers
         }
 
         public static bool IsValidYear(string? value) => int.TryParse(value, out var year) && year > 1900 && year <= DateTime.Now.Year;
+    
+        public static bool IsValidPicture(TagLib.IPicture picture)
+        {
+            return picture != null && picture.Type != TagLib.PictureType.NotAPicture && picture?.Data?.Data != null;
+        }
     }
 }

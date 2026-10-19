@@ -14,9 +14,7 @@
         protected override void Dispose(bool disposing)
         {
             if (disposing && (components != null))
-            {
                 components.Dispose();
-            }
             base.Dispose(disposing);
         }
 
@@ -52,12 +50,15 @@
             LyricsButton = new Button();
             label8 = new Label();
             quickGetButton = new Button();
+            label9 = new Label();
+            pictureBox = new PictureBox();
+            ((System.ComponentModel.ISupportInitialize)pictureBox).BeginInit();
             SuspendLayout();
             // 
             // OK
             // 
             OK.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            OK.Location = new Point(341, 808);
+            OK.Location = new Point(341, 830);
             OK.Margin = new Padding(4, 5, 4, 5);
             OK.Name = "OK";
             OK.Size = new Size(100, 35);
@@ -69,7 +70,7 @@
             // CancelButton2
             // 
             CancelButton2.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            CancelButton2.Location = new Point(449, 808);
+            CancelButton2.Location = new Point(449, 830);
             CancelButton2.Margin = new Padding(4, 5, 4, 5);
             CancelButton2.Name = "CancelButton2";
             CancelButton2.Size = new Size(100, 35);
@@ -236,17 +237,17 @@
             // lyricsTextBox
             // 
             lyricsTextBox.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            lyricsTextBox.Location = new Point(107, 346);
+            lyricsTextBox.Location = new Point(107, 463);
             lyricsTextBox.Margin = new Padding(4, 5, 4, 5);
             lyricsTextBox.Name = "lyricsTextBox";
-            lyricsTextBox.Size = new Size(441, 450);
+            lyricsTextBox.Size = new Size(441, 357);
             lyricsTextBox.TabIndex = 24;
             lyricsTextBox.Text = "";
             // 
             // APIbutton
             // 
             APIbutton.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            APIbutton.Location = new Point(124, 808);
+            APIbutton.Location = new Point(124, 830);
             APIbutton.Margin = new Padding(4, 5, 4, 5);
             APIbutton.Name = "APIbutton";
             APIbutton.Size = new Size(100, 35);
@@ -258,7 +259,7 @@
             // LyricsButton
             // 
             LyricsButton.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            LyricsButton.Location = new Point(232, 808);
+            LyricsButton.Location = new Point(232, 830);
             LyricsButton.Margin = new Padding(4, 5, 4, 5);
             LyricsButton.Name = "LyricsButton";
             LyricsButton.Size = new Size(100, 35);
@@ -270,7 +271,7 @@
             // label8
             // 
             label8.AutoSize = true;
-            label8.Location = new Point(16, 351);
+            label8.Location = new Point(16, 463);
             label8.Margin = new Padding(4, 0, 4, 0);
             label8.Name = "label8";
             label8.Size = new Size(47, 20);
@@ -280,7 +281,7 @@
             // quickGetButton
             // 
             quickGetButton.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            quickGetButton.Location = new Point(16, 808);
+            quickGetButton.Location = new Point(16, 830);
             quickGetButton.Margin = new Padding(4, 5, 4, 5);
             quickGetButton.Name = "quickGetButton";
             quickGetButton.Size = new Size(100, 35);
@@ -289,11 +290,34 @@
             quickGetButton.UseVisualStyleBackColor = true;
             quickGetButton.Click += QuickGetButton_Click;
             // 
+            // label9
+            // 
+            label9.AutoSize = true;
+            label9.Location = new Point(16, 345);
+            label9.Margin = new Padding(4, 0, 4, 0);
+            label9.Name = "label9";
+            label9.Size = new Size(57, 20);
+            label9.TabIndex = 30;
+            label9.Text = "Picture:";
+            // 
+            // pictureBox
+            // 
+            pictureBox.BorderStyle = BorderStyle.FixedSingle;
+            pictureBox.Location = new Point(107, 345);
+            pictureBox.Name = "pictureBox";
+            pictureBox.Size = new Size(110, 110);
+            pictureBox.SizeMode = PictureBoxSizeMode.Zoom;
+            pictureBox.TabIndex = 31;
+            pictureBox.TabStop = false;
+            pictureBox.Click += PictureBox_Click;
+            // 
             // SingleEdit
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(565, 862);
+            ClientSize = new Size(565, 884);
+            Controls.Add(pictureBox);
+            Controls.Add(label9);
             Controls.Add(contributingTextBox);
             Controls.Add(quickGetButton);
             Controls.Add(label8);
@@ -321,6 +345,7 @@
             Margin = new Padding(4, 5, 4, 5);
             Name = "SingleEdit";
             Text = "SingleEdit";
+            ((System.ComponentModel.ISupportInitialize)pictureBox).EndInit();
             ResumeLayout(false);
             PerformLayout();
 
@@ -328,28 +353,30 @@
 
         #endregion
 
-        private System.Windows.Forms.Button OK;
-        private System.Windows.Forms.Button CancelButton2;
-        private System.Windows.Forms.TextBox locationBox;
-        private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.Label label2;
-        private System.Windows.Forms.Label label3;
-        private System.Windows.Forms.Label label4;
-        private System.Windows.Forms.Label label5;
-        private System.Windows.Forms.Label label6;
-        private System.Windows.Forms.TextBox nameTextBox;
-        private System.Windows.Forms.TextBox aArtistTextBox;
-        private System.Windows.Forms.TextBox titleTextBox;
-        private System.Windows.Forms.TextBox yearTextBox;
-        private System.Windows.Forms.TextBox albumTextBox;
-        private System.Windows.Forms.TextBox genreBox;
-        private System.Windows.Forms.Label genreLabel;
-        private System.Windows.Forms.TextBox contributingTextBox;
-        private System.Windows.Forms.Label label7;
-        private System.Windows.Forms.RichTextBox lyricsTextBox;
-        private System.Windows.Forms.Button APIbutton;
-        private System.Windows.Forms.Button LyricsButton;
-        private System.Windows.Forms.Label label8;
-        private System.Windows.Forms.Button quickGetButton;
+        private Button OK;
+        private Button CancelButton2;
+        private TextBox locationBox;
+        private Label label1;
+        private Label label2;
+        private Label label3;
+        private Label label4;
+        private Label label5;
+        private Label label6;
+        private TextBox nameTextBox;
+        private TextBox aArtistTextBox;
+        private TextBox titleTextBox;
+        private TextBox yearTextBox;
+        private TextBox albumTextBox;
+        private TextBox genreBox;
+        private Label genreLabel;
+        private TextBox contributingTextBox;
+        private Label label7;
+        private RichTextBox lyricsTextBox;
+        private Button APIbutton;
+        private Button LyricsButton;
+        private Label label8;
+        private Button quickGetButton;
+        private Label label9;
+        private PictureBox pictureBox;
     }
 }

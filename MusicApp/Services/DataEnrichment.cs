@@ -300,7 +300,7 @@ namespace MusicApp.Services
 
                 return result;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return null;
             }

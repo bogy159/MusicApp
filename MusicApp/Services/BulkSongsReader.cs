@@ -54,6 +54,7 @@ namespace MusicApp.Services
                                 AlbumTitle = tag.Album ?? string.Empty,
                                 Year = tag.Year > 0 ? tag.Year.ToString() : string.Empty,
                                 Genre = tag.FirstGenre ?? string.Empty,
+                                Picture = Validators.IsValidPicture(tag.Pictures?.FirstOrDefault()) ? "Yes" : "No",
                                 Lyrics = string.IsNullOrEmpty(tag.Lyrics) ? "No" : "Yes",
                                 Length = props.Duration != TimeSpan.Zero ? props.Duration.ToString(props.Duration.Hours > 0 ? "h\\:mm\\:ss" : "mm\\:ss") : string.Empty,
                                 Size = (Convert.ToDouble(new FileInfo(file).Length) / 1024 / 1024).ToString() ?? string.Empty,
@@ -120,6 +121,7 @@ namespace MusicApp.Services
             dt.Columns.Add("Length");
             dt.Columns.Add("Size in MB");
             dt.Columns.Add("BitRate");
+            dt.Columns.Add("Has Picture");
             dt.Columns.Add("File Path");
             dt.Columns.Add("Has Lyrics");
 
@@ -127,7 +129,7 @@ namespace MusicApp.Services
             foreach (var s in songs)
             {
                 i++;
-                dt.Rows.Add(i, s.FileName, s.FixName, s.ChangeArtist, s.ChangeTitle, s.AlbumArtist, s.ContributingArtist, s.SongTitle, s.AlbumTitle, s.Year, s.Genre, s.Length, s.Size, s.BitRate, s.Location, s.Lyrics);
+                dt.Rows.Add(i, s.FileName, s.FixName, s.ChangeArtist, s.ChangeTitle, s.AlbumArtist, s.ContributingArtist, s.SongTitle, s.AlbumTitle, s.Year, s.Genre, s.Length, s.Size, s.BitRate, s.Picture, s.Location, s.Lyrics);
             }
 
             return dt;

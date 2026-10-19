@@ -1,36 +1,45 @@
 ﻿using MusicApp.Helpers;
 using MusicApp.Services;
+using MusicApp.Views;
 using System.Text.RegularExpressions;
 
 namespace MusicApp
 {
     public partial class SingleEdit : Form
     {
-        public string error = "";
+        private TagLib.Tag tag = null;
+        private bool isPictureChanged = false;
 
         public SingleEdit(string location)
         {
             InitializeComponent();
             CancelButton = CancelButton2;
             locationBox.Text = location;
-            GetData(location);            
-        }       
+            GetData(location);
+        }
 
         public void GetData(string location)
         {
             try
             {
-                using (TagLib.File tagFile = TagLib.File.Create(location))
+                using TagLib.File tagFile = TagLib.File.Create(location);
+                tag = tagFile.Tag;
+                nameTextBox.Text = Path.GetFileName(location);
+                aArtistTextBox.Text = tag.AlbumArtists?.FirstOrDefault() ?? tag.FirstAlbumArtist ?? string.Empty;
+                contributingTextBox.Text = tag.Performers?.FirstOrDefault() ?? string.Empty;
+                titleTextBox.Text = tag.Title ?? string.Empty;
+                albumTextBox.Text = tag.Album ?? string.Empty;
+                yearTextBox.Text = tag.Year > 0 ? tag.Year.ToString() : string.Empty;
+                genreBox.Text = tag.FirstGenre ?? string.Empty;
+                lyricsTextBox.Text = tag.Lyrics ?? string.Empty;
+
+                var picture = tag.Pictures?.FirstOrDefault();
+
+                if (Validators.IsValidPicture(picture))
                 {
-                    TagLib.Tag tag = tagFile.Tag;
-                    nameTextBox.Text = Path.GetFileName(location);
-                    aArtistTextBox.Text = tag.AlbumArtists?.FirstOrDefault() ?? tag.FirstAlbumArtist ?? string.Empty;
-                    contributingTextBox.Text = tag.Performers?.FirstOrDefault() ?? string.Empty;
-                    titleTextBox.Text = tag.Title ?? string.Empty;
-                    albumTextBox.Text = tag.Album ?? string.Empty;
-                    yearTextBox.Text = tag.Year > 0 ? tag.Year.ToString() : string.Empty;
-                    genreBox.Text = tag.FirstGenre ?? string.Empty;
-                    lyricsTextBox.Text = tag.Lyrics ?? string.Empty;
+                    using var stream = new MemoryStream(picture?.Data?.Data);
+                    using var decodedImage = Image.FromStream(stream);
+                    pictureBox.Image = new Bitmap(decodedImage);
                 }
             }
             catch (Exception ex)
@@ -44,36 +53,47 @@ namespace MusicApp
         {
             try
             {
-                using (TagLib.File tagFile = TagLib.File.Create(location))
+                using TagLib.File tagFile = TagLib.File.Create(location);
+                TagLib.Tag tag = tagFile.Tag;
+                bool hasYear = uint.TryParse(yearTextBox.Text, out uint year);
+
+                if (yearTextBox.Text == "")
+                    tag.Year = 0;
+                else if (hasYear && Validators.IsValidYear(yearTextBox.Text))
+                    tag.Year = year;
+                else
                 {
-                    TagLib.Tag tag = tagFile.Tag;
-                    bool hasYear = uint.TryParse(yearTextBox.Text, out uint year);
+                    DialogResult dialogResult = MessageBox.Show("Invalid year!" + Environment.NewLine + "Do you want to continue with the year change?", "Inpropper year!", MessageBoxButtons.YesNoCancel);
 
-                    if (yearTextBox.Text == "")
-                        tag.Year = 0;
-                    else if (hasYear && Validators.IsValidYear(yearTextBox.Text))
-                        tag.Year = year;
-                    else
+                    if (dialogResult == DialogResult.Yes)
                     {
-                        DialogResult dialogResult = MessageBox.Show("Invalid year!" + Environment.NewLine + "Do you want to continue with the year change?", "Inpropper year!", MessageBoxButtons.YesNoCancel);
-
-                        if (dialogResult == DialogResult.Yes)
-                        {
-                            if (hasYear)
-                                tag.Year = year;
-                        }
-                        else if (dialogResult == DialogResult.Cancel)
-                            return;
+                        if (hasYear)
+                            tag.Year = year;
                     }
-
-                    tag.AlbumArtists = [aArtistTextBox.Text];
-                    tag.Title = titleTextBox.Text;
-                    tag.Album = albumTextBox.Text;
-                    tag.Performers = [contributingTextBox.Text];
-                    tag.Genres = [genreBox.Text];
-                    tag.Lyrics = lyricsTextBox.Text;
-                    tagFile.Save();
+                    else if (dialogResult == DialogResult.Cancel)
+                        return;
                 }
+
+                tag.AlbumArtists = [aArtistTextBox.Text];
+                tag.Title = titleTextBox.Text;
+                tag.Album = albumTextBox.Text;
+                tag.Performers = [contributingTextBox.Text];
+                tag.Genres = [genreBox.Text];
+                if (!string.IsNullOrWhiteSpace(lyricsTextBox.Text))
+                {
+                    // File.Tag can be a combined tag when the file contains multiple
+                    // tag formats, so inspect the ID3v2 tag directly before updating
+                    // the combined Lyrics property.
+                    if (tagFile.GetTag(TagLib.TagTypes.Id3v2, false) is TagLib.Id3v2.Tag id3Tag)
+                    {
+                        foreach (var frame in id3Tag.GetFrames<TagLib.Id3v2.UnsynchronisedLyricsFrame>().ToArray())
+                            id3Tag.RemoveFrame(frame);
+                    }
+                    tag.Lyrics = lyricsTextBox.Text;
+                }
+                if (isPictureChanged && pictureBox.Image is Image image)
+                    tag.Pictures = [Pictures.ToTagPicture(image)];
+                tagFile.Save();
             }
             catch (Exception e)
             {
@@ -97,7 +117,7 @@ namespace MusicApp
                         Close();
                     }
                     else if (dialogResult == DialogResult.No)
-                    {                        
+                    {
                     }
                     else if (dialogResult == DialogResult.Cancel)
                         Close();
@@ -105,9 +125,9 @@ namespace MusicApp
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error: " + ex.Message, "Renaming error!");                
+                MessageBox.Show("Error: " + ex.Message, "Renaming error!");
             }
-        }        
+        }
 
         private void OK_Click(object sender, EventArgs e)
         {
@@ -129,7 +149,7 @@ namespace MusicApp
                     e.Handled = e.KeyChar != (char)Keys.Back;
             }
         }
-        
+
         private async void APIbutton_Click(object sender, EventArgs e)
         {
             var data = await DataEnrichment.EnrichDataAsync(aArtistTextBox.Text, titleTextBox.Text);
@@ -168,14 +188,24 @@ namespace MusicApp
             string[] artist = Regex.Split(name[0], "\\.");
             if (artist.Length >= 2 && artist[1] != null)
             {
-                aArtistTextBox.Text = artist[1].Trim(); 
+                aArtistTextBox.Text = artist[1].Trim();
                 contributingTextBox.Text = artist[1].Trim();
             }
             if (name.Length >= 2 && name[1] != null)
             {
                 string[] title = Regex.Split(name[1], "\\.");
                 titleTextBox.Text = title[0].Trim();
-            }  
+            }
+        }
+
+        private void PictureBox_Click(object sender, EventArgs e)
+        {
+            using PictureSwap editForm = new(tag);
+            if (editForm.ShowDialog(this) == DialogResult.OK && editForm.SelectedImage is Image selectedImage)
+            {
+                pictureBox.Image = selectedImage;
+                isPictureChanged = true;
+            }
         }
     }
 }
