@@ -184,7 +184,7 @@ namespace MusicApp
 
         private void QuickGetButton_Click(object sender, EventArgs e)
         {
-            string[] name = Regex.Split(nameTextBox.Text, "-");
+            string[] name = Regex.Split(nameTextBox.Text, " - ");
             string[] artist = Regex.Split(name[0], "\\.");
             if (artist.Length >= 2 && artist[1] != null)
             {

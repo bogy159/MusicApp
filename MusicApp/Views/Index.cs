@@ -83,7 +83,7 @@ namespace MusicApp
             {
                 string[] files = Directory.GetFiles(path, "*.mp3", SearchOption.AllDirectories);
 
-                DataTable table = new DataTable();
+                DataTable table = new();
                 table.Columns.Add("No", typeof(int));
                 table.Columns.Add("File Name", typeof(string));
                 table.Columns.Add("Fix Name");
@@ -108,7 +108,7 @@ namespace MusicApp
                         break;
                     }
 
-                    FileInfo file = new FileInfo(files[i]);
+                    FileInfo file = new(files[i]);
                     using (TagLib.File tagFile = TagLib.File.Create(file.FullName))
                     {
                         TagLib.Tag tag = tagFile.Tag;

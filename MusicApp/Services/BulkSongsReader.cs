@@ -16,7 +16,7 @@ namespace MusicApp.Services
         /// <param name="progress">Optional progress reporter (reports processed count).</param>
         public static async Task<List<SongExtended>> ReadSongsAsync(IEnumerable<string> files, int maxDegreeOfParallelism = 10, IProgress<int>? progress = null)
         {
-            var fileArray = files as string[] ?? files.ToArray();
+            var fileArray = files as string[] ?? [.. files];
             if (maxDegreeOfParallelism <= 0) maxDegreeOfParallelism = Math.Max(1, Environment.ProcessorCount);
 
             var bag = new ConcurrentBag<SongExtended>();
@@ -29,6 +29,8 @@ namespace MusicApp.Services
             int chunk = Math.Max(1, total / targetUpdates);
             var sw = System.Diagnostics.Stopwatch.StartNew();
             long lastReportMs = 0;
+
+            var errors = new List<string>();
 
             await Parallel.ForEachAsync(fileArray, options, async (file, ct) =>
             {
@@ -65,9 +67,9 @@ namespace MusicApp.Services
 
                             bag.Add(song);
                         }
-                        catch
+                        catch (Exception ex)
                         {
-                            // ignore single-file failures
+                            errors.Add($"{file} - {ex.Message}");
                         }
                     }, ct).ConfigureAwait(false);
                 }
@@ -98,7 +100,10 @@ namespace MusicApp.Services
                 }
             }).ConfigureAwait(false);
 
-            return bag.OrderBy(s => s.FileName).ToList();
+            if (errors.Count != 0)
+                MessageBox.Show($"Some files could not be read:\n{string.Join("\n", errors)}", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+
+            return [.. bag.OrderBy(s => s.FileName)];
         }
 
         /// <summary>
