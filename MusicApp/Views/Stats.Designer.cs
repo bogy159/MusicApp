@@ -80,7 +80,7 @@
             // 
             progressBar2.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            progressBar2.BackColor = System.Drawing.SystemColors.ControlDark;
+            progressBar2.BackColor = System.Drawing.SystemColors.ControlLight;
             progressBar2.Cursor = System.Windows.Forms.Cursors.IBeam;
             progressBar2.Location = new System.Drawing.Point(150, 9);
             progressBar2.Name = "progressBar2";

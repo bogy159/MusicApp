@@ -19,6 +19,7 @@ namespace MusicApp
         {
             InitializeComponent();
             ThemeManager.ApplyDarkThemeToGrid(dataGridView1);
+            SetupDataGridViewContextMenu();
 
             //mandatory. Otherwise will throw an exception when calling ReportProgress method  
             backgroundWorker1.WorkerReportsProgress = true;
@@ -29,6 +30,80 @@ namespace MusicApp
             backgroundWorker1.DoWork += new DoWorkEventHandler(Bw_DoWork);
             backgroundWorker1.ProgressChanged += new ProgressChangedEventHandler(Bw_ProgressChanged);
             backgroundWorker1.RunWorkerCompleted += new RunWorkerCompletedEventHandler(Bw_RunWorkerCompleted);
+        }
+
+        private void SetupDataGridViewContextMenu()
+        {
+            // 1. Create the ContextMenuStrip
+            ContextMenuStrip gridContextMenu = new();
+
+            // 2. Add menu items
+            ToolStripMenuItem editItem = new("Edit");
+            ToolStripMenuItem playItem = new("Play song");
+            ToolStripMenuItem exploreItem = new("Open in File Explorer");
+
+            // 3. Wire up click events for each option
+            editItem.Click += (s, e) =>
+            {
+                // Get the currently selected row/data
+                if (dataGridView1.CurrentRow != null)
+                    OpenSingleEdit();
+            }; 
+            editItem.Font = new Font(editItem.Font, FontStyle.Bold);
+
+            playItem.Click += (s, e) =>
+            {
+                if (dataGridView1.SelectedCells != null)
+                {
+                    string filePath = dataGridView1.SelectedCells[dataGridView1.SelectedCells.Count - 2].Value?.ToString();
+                    if (!string.IsNullOrEmpty(filePath) && File.Exists(filePath))
+                    {
+                        try
+                        {
+                            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                            {
+                                FileName = filePath,
+                                UseShellExecute = true // Crucial for .NET 10 to open with the default app
+                            });
+                        }
+                        catch (Exception ex)
+                        {
+                            DarkMessageBox.Show("Could not open file: " + ex.Message, "Error");
+                        }
+                    }
+                    else
+                        DarkMessageBox.Show("The file could not be found on disk.", "File Not Found");
+                }
+            };
+
+            exploreItem.Click += (s, e) =>
+            {
+                if (dataGridView1.SelectedCells != null)
+                {
+                    string filePath = dataGridView1.SelectedCells[dataGridView1.SelectedCells.Count - 2].Value?.ToString();
+                    if (!string.IsNullOrEmpty(filePath) && File.Exists(filePath))
+                    {
+                        try
+                        {
+                            System.Diagnostics.Process.Start("explorer.exe", $"/select, \"{filePath}\"");
+                        }
+                        catch (Exception ex)
+                        {
+                            DarkMessageBox.Show("Could not open explorer: " + ex.Message, "Error");
+                        }
+                    }
+                    else
+                        DarkMessageBox.Show("The file could not be found on disk.", "File Not Found");
+                }
+            };
+
+            // 4. Add items to the menu container
+            gridContextMenu.Items.Add(editItem);
+            gridContextMenu.Items.Add(playItem);
+            gridContextMenu.Items.Add(exploreItem);
+
+            // 5. Attach the context menu to your DataGridView
+            dataGridView1.ContextMenuStrip = gridContextMenu;
         }
 
         private int CalculateTotalPages()
@@ -522,19 +597,43 @@ namespace MusicApp
 
         private void DataGridView1_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
         {
-            if (e.RowIndex >= 0) // Make sure they didn't click header cells
+            if (e.RowIndex >= 0)
+                OpenSingleEdit();
+        }
+
+        private void OpenSingleEdit()
+        {
+            SingleEdit editForm = new(dataGridView1.SelectedCells[dataGridView1.SelectedCells.Count - 2].Value.ToString())
             {
-                SingleEdit editForm = new SingleEdit(dataGridView1.SelectedCells[dataGridView1.SelectedCells.Count - 2].Value.ToString())
+                Text = dataGridView1.SelectedCells[1].Value.ToString()
+            };
+            try
+            {
+                editForm.ShowDialog();
+            }
+            catch (Exception ex)
+            {
+                DarkMessageBox.Show(ex.Message, "Something happened");
+            }
+        }
+
+        private void dataGridView1_MouseDown(object sender, MouseEventArgs e)
+        {
+            // Check if it's a right-click
+            if (e.Button == MouseButtons.Right)
+            {
+                // Find which cell or row was clicked under the mouse coordinates
+                DataGridView.HitTestInfo hit = dataGridView1.HitTest(e.X, e.Y);
+
+                // If they clicked on a valid row (not empty space or headers)
+                if (hit.RowIndex >= 0)
                 {
-                    Text = dataGridView1.SelectedCells[1].Value.ToString()
-                };
-                try
-                {
-                    editForm.ShowDialog();
-                }
-                catch (Exception ex)
-                {
-                    DarkMessageBox.Show(ex.Message, "Something happened");
+                    // Clear existing selections and select this row
+                    dataGridView1.ClearSelection();
+                    dataGridView1.Rows[hit.RowIndex].Selected = true;
+
+                    // Make it the current cell/row
+                    dataGridView1.CurrentCell = dataGridView1.Rows[hit.RowIndex].Cells[hit.ColumnIndex >= 0 ? hit.ColumnIndex : 0];
                 }
             }
         }

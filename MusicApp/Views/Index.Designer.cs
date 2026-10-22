@@ -183,6 +183,7 @@
             dataGridView1.CellContentClick += dataGridView1_CellContentClick;
             dataGridView1.CellDoubleClick += DataGridView1_CellDoubleClick;
             dataGridView1.ColumnDividerDoubleClick += DataGridView1_ColumnDividerDoubleClick;
+            dataGridView1.MouseDown += dataGridView1_MouseDown;
             // 
             // progressBar1
             // 
