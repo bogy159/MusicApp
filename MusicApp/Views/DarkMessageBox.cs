@@ -27,7 +27,7 @@
             Height = 85,
             Font = new Font("Segoe UI", 10F)
         };
-        this.Controls.Add(lblMessage);
+        Controls.Add(lblMessage);
 
         // Position buttons dynamically based on what was requested
         SetupButtons(buttons);
@@ -63,6 +63,19 @@
                 Controls.Add(btnYes);
                 Controls.Add(btnNo);
                 AcceptButton = btnYes;
+                break;
+
+            case MessageBoxButtons.YesNoCancel:
+                // Arranges Yes (left), No (middle), and Cancel (right)
+                var btnCancel2 = CreateButton("Cancel", DialogResult.Cancel, 325, yPos, btnWidth, btnHeight);
+                var btnNo2 = CreateButton("No", DialogResult.No, 325 - btnWidth - spacing, yPos, btnWidth, btnHeight);
+                var btnYes22 = CreateButton("Yes", DialogResult.Yes, 325 - (btnWidth * 2) - (spacing * 2), yPos, btnWidth, btnHeight);
+
+                Controls.Add(btnYes22);
+                Controls.Add(btnNo2);
+                Controls.Add(btnCancel2);
+                AcceptButton = btnYes22;
+                CancelButton = btnCancel2;
                 break;
 
             case MessageBoxButtons.AbortRetryIgnore:

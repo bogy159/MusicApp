@@ -63,7 +63,7 @@ namespace MusicApp
                     tag.Year = year;
                 else
                 {
-                    DialogResult dialogResult = DarkMessageBox.Show("Invalid year!" + Environment.NewLine + "Do you want to continue with the year change?", "Inpropper year!", MessageBoxButtons.YesNoCancel);
+                    DialogResult dialogResult = DarkMessageBox.Show("Invalid year!" + Environment.NewLine + "Do you want to continue with the year change?", "Inproper year!", MessageBoxButtons.YesNoCancel);
 
                     if (dialogResult == DialogResult.Yes)
                     {
@@ -109,7 +109,7 @@ namespace MusicApp
                 }
                 else
                 {
-                    DialogResult dialogResult = DarkMessageBox.Show("Name check returned: " + message + Environment.NewLine + "Do you want to continue with the name change?", "Inpropper name!", MessageBoxButtons.YesNoCancel);
+                    DialogResult dialogResult = DarkMessageBox.Show("Name check returned: " + message + Environment.NewLine + "Do you want to continue with the name change?", "Inproper name!", MessageBoxButtons.YesNoCancel);
 
                     if (dialogResult == DialogResult.Yes)
                     {
