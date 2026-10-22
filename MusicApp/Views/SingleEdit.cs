@@ -185,7 +185,7 @@ namespace MusicApp
         private void QuickGetButton_Click(object sender, EventArgs e)
         {
             string[] name = Regex.Split(nameTextBox.Text, " - ");
-            string[] artist = Regex.Split(name[0], "\\.");
+            string[] artist = name[0].Split(['.'], 2);
             if (artist.Length >= 2 && artist[1] != null)
             {
                 aArtistTextBox.Text = artist[1].Trim();
@@ -193,7 +193,7 @@ namespace MusicApp
             }
             if (name.Length >= 2 && name[1] != null)
             {
-                string[] title = Regex.Split(name[1], "\\.");
+                string[] title = Regex.Split(name[1], "\\.mp3");
                 titleTextBox.Text = title[0].Trim();
             }
         }

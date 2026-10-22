@@ -62,16 +62,17 @@ namespace MusicApp.Helpers
 
         public static string ArtistCheck(Song song)
         {
+            string[] name = Regex.Split(song.FileName, " - ");
+            string[] artist = name[0].Split(['.'], 2);
             if (song.AlbumArtist == "" || song.AlbumArtist.Contains("ntitled") || song.AlbumArtist.Contains("various") || song.AlbumArtist.Contains("Various") || song.AlbumArtist.Contains("nknown"))
             {
-                string[] newName = Regex.Split(song.FileName, "-");
-                string[] newest = Regex.Split(newName[0], "\\.");
-
                 if (NameCheck(song.FileName) != "")
                     return "Improper file name";
-                else if (newest.Length >= 2 && newest[1] != null)
-                    return newest[1];
+                else if (artist.Length >= 2 && artist[1] != null)
+                    return artist[1];
             }
+            else if (!string.Equals(song.AlbumArtist, artist[1]))
+                return artist[1];
             else if (!string.Equals(song.AlbumArtist, song.ContributingArtist))
                 return "Different Artists";
 
