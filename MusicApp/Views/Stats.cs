@@ -2,11 +2,12 @@
 
 namespace MusicApp
 {
-    public partial class Stats : Form
+    public partial class Stats : DarkForm
     {
         public Stats()
         {
             InitializeComponent();
+            ThemeManager.ApplyDarkThemeToGrid(statsDataGridView);
             comboBox1.SelectedItem = "Album Artists";
             Sorting("Album Artist");
         }
@@ -51,7 +52,6 @@ namespace MusicApp
 
         private List<string> Filtering(string column)
         {
-
             List<string> collection = Index.tableFin.AsEnumerable().Select(r => r.Field<string>(column)).ToList();
 
             if (column == "Contribution Artist")
@@ -136,7 +136,13 @@ namespace MusicApp
             statsDataGridView.DataSource = sortedDT;
             textBox1.Text = sortedDT.Rows.Count.ToString();
         }
-        
+
+        private void StatsDataGridView_ColumnDividerDoubleClick(object sender, DataGridViewColumnDividerDoubleClickEventArgs e)
+        {
+            if (e.ColumnIndex >= 0)
+                statsDataGridView.AutoResizeColumn(e.ColumnIndex, DataGridViewAutoSizeColumnMode.DisplayedCells);
+        }
+
         private void CloseButton_Click(object sender, EventArgs e)
         {
             Close();
@@ -166,9 +172,9 @@ namespace MusicApp
                 if (sortKey != null)
                     Sorting(sortKey);
             }
-            catch (Exception x)
+            catch (Exception ex)
             {
-                MessageBox.Show(x.ToString(), "Error!");
+                DarkMessageBox.Show(ex.ToString(), "Error!");
             }
         }
     }

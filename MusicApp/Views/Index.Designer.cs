@@ -182,6 +182,7 @@
             dataGridView1.TabIndex = 1;
             dataGridView1.CellContentClick += dataGridView1_CellContentClick;
             dataGridView1.CellDoubleClick += DataGridView1_CellDoubleClick;
+            dataGridView1.ColumnDividerDoubleClick += DataGridView1_ColumnDividerDoubleClick;
             // 
             // progressBar1
             // 
@@ -410,9 +411,7 @@
             ((System.ComponentModel.ISupportInitialize)dataGridView1).EndInit();
             ResumeLayout(false);
             PerformLayout();
-
         }
-
         #endregion
 
         private System.Windows.Forms.MenuStrip menuStrip1;

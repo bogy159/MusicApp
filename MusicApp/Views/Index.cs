@@ -7,7 +7,7 @@ using Application = System.Windows.Forms.Application;
 
 namespace MusicApp
 {
-    public partial class Index : Form
+    public partial class Index : DarkForm
     {
         public static DataTable tableFin;
         private string path;
@@ -18,6 +18,7 @@ namespace MusicApp
         public Index()
         {
             InitializeComponent();
+            ThemeManager.ApplyDarkThemeToGrid(dataGridView1);
 
             //mandatory. Otherwise will throw an exception when calling ReportProgress method  
             backgroundWorker1.WorkerReportsProgress = true;
@@ -25,13 +26,9 @@ namespace MusicApp
             //mandatory. Otherwise we would get an InvalidOperationException when trying to cancel the operation  
             backgroundWorker1.WorkerSupportsCancellation = true;
 
-            backgroundWorker1.DoWork +=
-                 new DoWorkEventHandler(Bw_DoWork);
-            backgroundWorker1.ProgressChanged +=
-                new ProgressChangedEventHandler(Bw_ProgressChanged);
-            backgroundWorker1.RunWorkerCompleted +=
-                new RunWorkerCompletedEventHandler(Bw_RunWorkerCompleted);
-
+            backgroundWorker1.DoWork += new DoWorkEventHandler(Bw_DoWork);
+            backgroundWorker1.ProgressChanged += new ProgressChangedEventHandler(Bw_ProgressChanged);
+            backgroundWorker1.RunWorkerCompleted += new RunWorkerCompletedEventHandler(Bw_RunWorkerCompleted);
         }
 
         private int CalculateTotalPages()
@@ -63,7 +60,6 @@ namespace MusicApp
                     DataRow row = whole.Rows[i];
                     dt.ImportRow(row);
                 }
-
             }
             return dt;
         }
@@ -168,7 +164,7 @@ namespace MusicApp
 
             catch (FileNotFoundException ex)
             {
-                MessageBox.Show("File not found exception!", ex.Message);
+                DarkMessageBox.Show("File not found exception!", ex.Message);
                 path = "";
             }
         }
@@ -186,7 +182,7 @@ namespace MusicApp
         {
             if (e.Cancelled == true)
             {
-                MessageBox.Show("Cancelled!", "Cancelled");
+                DarkMessageBox.Show("Cancelled!", "Cancelled");
                 if (tableFin != null)
                     dataGridView1.DataSource = GetCurrentRecords(1, tableFin);
                 CancelButton2.Enabled = false;
@@ -200,7 +196,7 @@ namespace MusicApp
             }
             else if (!(e.Error == null))
             {
-                MessageBox.Show("Error!", "Error");
+                DarkMessageBox.Show("Error!", "Error");
                 DisableButtons();
             }
             else
@@ -276,7 +272,7 @@ namespace MusicApp
             {
                 string[] files = Directory.GetFiles(fbd.SelectedPath, "*.mp3", SearchOption.AllDirectories);
 
-                DialogResult dialogResult = MessageBox.Show("Files found: " + files.Length.ToString() + Environment.NewLine + "This Process can be slow once started. Do you want to continue?", "Countinue?", MessageBoxButtons.YesNo);
+                DialogResult dialogResult = DarkMessageBox.Show("Files found: " + files.Length.ToString() + Environment.NewLine + "This Process can be slow once started. Do you want to continue?", "Countinue?", MessageBoxButtons.YesNo);
 
                 if (dialogResult == DialogResult.Yes)
                 {
@@ -344,11 +340,11 @@ namespace MusicApp
                     if (i == files.Length - 1)
                         progressBar1.Value = 100;
                 }
-                MessageBox.Show($"{counter} files changed successfully!", "Success");
+                DarkMessageBox.Show($"{counter} files changed successfully!", "Success");
             }
             catch (FileNotFoundException ex)
             {
-                MessageBox.Show("Files not found exception!", ex.Message);
+                DarkMessageBox.Show("Files not found exception!", ex.Message);
             }
         }
 
@@ -385,11 +381,11 @@ namespace MusicApp
                     if (i == files.Length - 1)
                         progressBar1.Value = 100;
                 }
-                MessageBox.Show($"{counter} files changed successfully!", "Success");
+                DarkMessageBox.Show($"{counter} files changed successfully!", "Success");
             }
             catch (FileNotFoundException ex)
             {
-                MessageBox.Show("Files not found exception!", ex.Message);
+                DarkMessageBox.Show("Files not found exception!", ex.Message);
             }
         }
 
@@ -490,7 +486,7 @@ namespace MusicApp
         {
             string[] files = Directory.GetFiles(path, "*.mp3", SearchOption.AllDirectories);
 
-            DialogResult dialogResult = MessageBox.Show("Files found: " + files.Length.ToString() + Environment.NewLine + "This Process can be slow once started. Do you want to continue?", "Countinue?", MessageBoxButtons.YesNo);
+            DialogResult dialogResult = DarkMessageBox.Show("Files found: " + files.Length.ToString() + Environment.NewLine + "This Process can be slow once started. Do you want to continue?", "Countinue?", MessageBoxButtons.YesNo);
 
             if (dialogResult == DialogResult.Yes)
             {
@@ -516,7 +512,7 @@ namespace MusicApp
             DisableButtons();
             string[] files = Directory.GetFiles(path, "*.mp3", SearchOption.AllDirectories);
 
-            MessageBox.Show("Files found: " + files.Length.ToString(), "Message");
+            DarkMessageBox.Show("Files found: " + files.Length.ToString(), "Message");
             if (files.Length != 0)
             {
                 if (GetAllFiles() == true)
@@ -526,18 +522,27 @@ namespace MusicApp
 
         private void DataGridView1_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
         {
-            SingleEdit editForm = new SingleEdit(dataGridView1.SelectedCells[dataGridView1.SelectedCells.Count - 2].Value.ToString())
+            if (e.RowIndex >= 0) // Make sure they didn't click header cells
             {
-                Text = dataGridView1.SelectedCells[1].Value.ToString()
-            };
-            try
-            {
-                editForm.ShowDialog();
+                SingleEdit editForm = new SingleEdit(dataGridView1.SelectedCells[dataGridView1.SelectedCells.Count - 2].Value.ToString())
+                {
+                    Text = dataGridView1.SelectedCells[1].Value.ToString()
+                };
+                try
+                {
+                    editForm.ShowDialog();
+                }
+                catch (Exception ex)
+                {
+                    DarkMessageBox.Show(ex.Message, "Something happened");
+                }
             }
-            catch
-            {
-                //MessageBox.Show("Something happened", "Message");
-            }
+        }
+
+        private void DataGridView1_ColumnDividerDoubleClick(object sender, DataGridViewColumnDividerDoubleClickEventArgs e)
+        {
+            if (e.ColumnIndex >= 0)
+                dataGridView1.AutoResizeColumn(e.ColumnIndex, DataGridViewAutoSizeColumnMode.DisplayedCells);
         }
 
         private void StatsButton_Click(object sender, EventArgs e)
@@ -614,9 +619,9 @@ namespace MusicApp
                 ErrorList errorForm = new ErrorList(errorList);
                 errorForm.ShowDialog();
             }
-            catch (FileNotFoundException)
+            catch (FileNotFoundException ex)
             {
-                MessageBox.Show("Files not found exception!", "Message");
+                DarkMessageBox.Show("Files not found exception!", ex.Message);
             }
         }
 
@@ -666,7 +671,7 @@ namespace MusicApp
             }
             catch (FileNotFoundException ex)
             {
-                MessageBox.Show("Files not found exception!", ex.Message);
+                DarkMessageBox.Show("Files not found exception!", ex.Message);
             }
         }
 
@@ -686,7 +691,7 @@ namespace MusicApp
                 tableFin = null;
                 DisableButtons();
                 string[] files = Directory.GetFiles(fbd.SelectedPath, "*.mp3", SearchOption.AllDirectories);
-                MessageBox.Show("Files found: " + files.Length.ToString(), "Message");
+                DarkMessageBox.Show("Files found: " + files.Length.ToString(), "Message");
 
                 if (files.Length != 0)
                 {
@@ -725,13 +730,13 @@ namespace MusicApp
             }
             catch (FileNotFoundException)
             {
-                MessageBox.Show("File not found exception!", "Error");
+                DarkMessageBox.Show("File not found exception!", "Error");
                 path = "";
                 return false;
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.ToString(), "Error!");
+                DarkMessageBox.Show(ex.ToString(), "Error!");
                 path = "";
                 return false;
             }
@@ -783,7 +788,7 @@ namespace MusicApp
             }
             catch (FileNotFoundException ex)
             {
-                MessageBox.Show("Files not found exception!", ex.Message);
+                DarkMessageBox.Show("Files not found exception!", ex.Message);
             }
         }
 

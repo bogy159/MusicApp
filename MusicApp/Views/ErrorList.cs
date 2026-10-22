@@ -1,6 +1,6 @@
 ﻿namespace MusicApp
 {
-    public partial class ErrorList : Form
+    public partial class ErrorList : DarkForm
     {
         public ErrorList(string errorList)
         {

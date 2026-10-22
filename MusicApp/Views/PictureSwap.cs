@@ -2,7 +2,7 @@
 
 namespace MusicApp.Views
 {
-    public partial class PictureSwap : Form
+    public partial class PictureSwap : DarkForm
     {
         public Image SelectedImage { get; private set; }
         private TagLib.Tag _tag = null;
@@ -42,7 +42,7 @@ namespace MusicApp.Views
             var newPicture = await Pictures.GetPicture(_tag.AlbumArtists?.FirstOrDefault(), _tag.Title, apiUsed);
 
             if (newPicture.Item1 == null)
-                MessageBox.Show("Picture of the song was not found.", "No Results.");
+                DarkMessageBox.Show("Picture of the song was not found.", "No Results.");
             else
             {
                 newPictureBox.Image = newPicture.Item1;
@@ -98,7 +98,7 @@ namespace MusicApp.Views
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"Could not load the selected image.\n\nError: {ex.Message}", "Load Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    DarkMessageBox.Show($"Could not load the selected image.\n\nError: {ex.Message}", "Load Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
         }

@@ -101,7 +101,7 @@ namespace MusicApp.Services
             }).ConfigureAwait(false);
 
             if (errors.Count != 0)
-                MessageBox.Show($"Some files could not be read:\n{string.Join("\n", errors)}", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                DarkMessageBox.Show($"Some files could not be read:\n{string.Join("\n", errors)}", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
 
             return [.. bag.OrderBy(s => s.FileName)];
         }

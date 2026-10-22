@@ -26,7 +26,7 @@ namespace MusicApp.Services
             if (!string.IsNullOrEmpty(chartLyrics))
                 return (chartLyrics, false);
 
-            DialogResult dialogResult = MessageBox.Show("Error: " + Environment.NewLine + "When searching: " + artist + " - " + song, "Exception!", MessageBoxButtons.AbortRetryIgnore);
+            DialogResult dialogResult = DarkMessageBox.Show("Error: " + Environment.NewLine + "When searching: " + artist + " - " + song, "Exception!", MessageBoxButtons.AbortRetryIgnore);
             if (dialogResult == DialogResult.Abort)
                 return (null, true);
             else if (dialogResult == DialogResult.Retry)

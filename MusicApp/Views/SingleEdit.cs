@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 
 namespace MusicApp
 {
-    public partial class SingleEdit : Form
+    public partial class SingleEdit : DarkForm
     {
         private TagLib.Tag tag = null;
         private bool isPictureChanged = false;
@@ -44,7 +44,7 @@ namespace MusicApp
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.ToString(), "Error");
+                DarkMessageBox.Show(ex.ToString(), "Error");
                 Close();
             }
         }
@@ -63,7 +63,7 @@ namespace MusicApp
                     tag.Year = year;
                 else
                 {
-                    DialogResult dialogResult = MessageBox.Show("Invalid year!" + Environment.NewLine + "Do you want to continue with the year change?", "Inpropper year!", MessageBoxButtons.YesNoCancel);
+                    DialogResult dialogResult = DarkMessageBox.Show("Invalid year!" + Environment.NewLine + "Do you want to continue with the year change?", "Inpropper year!", MessageBoxButtons.YesNoCancel);
 
                     if (dialogResult == DialogResult.Yes)
                     {
@@ -97,7 +97,7 @@ namespace MusicApp
             }
             catch (Exception e)
             {
-                MessageBox.Show("Error: " + e, "Setting data error!");
+                DarkMessageBox.Show("Error: " + e, "Setting data error!");
             }
             try
             {
@@ -109,7 +109,7 @@ namespace MusicApp
                 }
                 else
                 {
-                    DialogResult dialogResult = MessageBox.Show("Name check returned: " + message + Environment.NewLine + "Do you want to continue with the name change?", "Inpropper name!", MessageBoxButtons.YesNoCancel);
+                    DialogResult dialogResult = DarkMessageBox.Show("Name check returned: " + message + Environment.NewLine + "Do you want to continue with the name change?", "Inpropper name!", MessageBoxButtons.YesNoCancel);
 
                     if (dialogResult == DialogResult.Yes)
                     {
@@ -125,7 +125,7 @@ namespace MusicApp
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error: " + ex.Message, "Renaming error!");
+                DarkMessageBox.Show("Error: " + ex.Message, "Renaming error!");
             }
         }
 
@@ -164,11 +164,11 @@ namespace MusicApp
                 }
                 catch (IndexOutOfRangeException)
                 {
-                    MessageBox.Show("Genre of the song was not found.", "No Results.");
+                    DarkMessageBox.Show("Genre of the song was not found.", "No Results.");
                 }
             }
             else
-                MessageBox.Show("The search did not return any results.", "No Results.");
+                DarkMessageBox.Show("The search did not return any results.", "No Results.");
         }
 
         private async void LyricsButton_Click(object sender, EventArgs e)
@@ -177,7 +177,7 @@ namespace MusicApp
 
             string lyricsValues = lyrics.Item1;
             if (lyricsValues == "")
-                MessageBox.Show("Lyrics of the song were not found.", "No Results.");
+                DarkMessageBox.Show("Lyrics of the song were not found.", "No Results.");
             else
                 lyricsTextBox.Text = lyricsValues;
         }

@@ -20,6 +20,7 @@ namespace MusicApp
             ApplicationConfiguration.Initialize();
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
+            Application.SetColorMode(SystemColorMode.Dark);
 
             Application.Run(new Index());
         }
