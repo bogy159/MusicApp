@@ -72,7 +72,7 @@ namespace MusicApp.Helpers
                 else if (newest.Length >= 2 && newest[1] != null)
                     return newest[1];
             }
-            else if (!string.Equals(song.AlbumArtist, song.ContributingArtist, StringComparison.OrdinalIgnoreCase))
+            else if (!string.Equals(song.AlbumArtist, song.ContributingArtist))
                 return "Different Artists";
 
             return "";
@@ -86,7 +86,7 @@ namespace MusicApp.Helpers
             if (newName.Length >= 2 && newName[1] != null)
             {
                 string[] newest = Regex.Split(newName[1], "\\.mp3");
-                if (!string.Equals(newest[0], song.SongTitle, StringComparison.OrdinalIgnoreCase))
+                if (!string.Equals(newest[0], song.SongTitle))
                     return newest[0];
             }
             return "";
